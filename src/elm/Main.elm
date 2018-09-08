@@ -15,9 +15,13 @@ import Ports
 import PortsDriver exposing (..)
 import Process
 import Task
-import Contract.DSGroup
+import Contract.DSGroup as DSGroup
 import Contract.ERC20
+import Contract.Helpers as CH
 import Constants exposing (ethNode, dsGroup)
+
+
+-- Main
 
 
 main : Program Never Model Msg
@@ -30,18 +34,26 @@ main =
         }
 
 
+
+-- Screens
+
+
+type ProposalWizard
+    = EthSend
+    | ContractSend
+
+
+
+-- Model
+
+
 type alias Model =
     { txSentry : TxSentry Msg
     , account : Maybe Address
     , errors : List String
-    }
-
-
-portsConfig : Config Msg
-portsConfig =
-    { output = Ports.output
-    , input = Ports.input
-    , fail = Fail
+    , dsGroup : Maybe Address
+    , wizard : Maybe ProposalWizard
+    , actions : List DSGroup.Action
     }
 
 
@@ -50,9 +62,24 @@ init =
     { txSentry = TxSentry.init ( Ports.txOut, Ports.txIn ) TxSentryMsg ethNode.http
     , account = Nothing
     , errors = []
+    , dsGroup = Nothing
+    , wizard = Nothing
+    , actions = []
     }
         ! [ PortsDriver.localStorageGetItem portsConfig "testkey"
           ]
+
+
+
+-- Ports
+
+
+portsConfig : Config Msg
+portsConfig =
+    { output = Ports.output
+    , input = Ports.input
+    , fail = Fail
+    }
 
 
 
@@ -66,12 +93,18 @@ view model =
 
 
 -- Update
+-- , Task.attempt GetProposals (CH.getProposals ethNode dsGroup)
 
 
 type Msg
     = TxSentryMsg TxSentry.Msg
     | WalletStatus WalletSentry
     | ReceiveStorageItem String (Maybe String)
+      -- UI Msgs
+    | SetDSGroup String
+      -- Chain Msgs
+    | GetProposals (Result Http.Error (List DSGroup.Action))
+      -- Misc Msgs
     | Fail String
     | NoOp
 
@@ -98,6 +131,21 @@ update msg model =
                     Debug.log "localStorage value" mValue
             in
                 model ! []
+
+        SetDSGroup strAdress ->
+            case EthUtils.toAddress strAdress of
+                Ok contractAddress ->
+                    { model | dsGroup = Just contractAddress }
+                        ! [ Task.attempt GetProposals (CH.getProposals ethNode.http contractAddress) ]
+
+                Err err ->
+                    model ! []
+
+        GetProposals (Ok actions) ->
+            { model | actions = actions } ! []
+
+        GetProposals (Err err) ->
+            { model | errors = toString err :: model.errors } ! []
 
         Fail str ->
             let

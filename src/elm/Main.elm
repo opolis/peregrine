@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 import BigInt exposing (BigInt)
+import Dict
 import Eth
 import Eth.Types exposing (..)
 import Eth.Sentry.Tx as TxSentry exposing (..)
@@ -16,7 +17,10 @@ import Task
 import Contract.DSGroup as DSGroup
 import Contract.ERC20
 import Contract.Helpers as CH
-import Constants exposing (ethNode, dsGroup)
+import Constants exposing (contractKey, dsGroup, ethNode)
+import Result
+import Types exposing (..)
+import Json.Decode exposing (decodeString)
 
 
 -- Main
@@ -53,6 +57,8 @@ type alias Model =
     , dsGroupAddress : Maybe Address
     , dsGroupInfo : Maybe DSGroup.GetInfo
     , actions : List DSGroup.Action
+    , descriptions : Descriptions
+    , proposals : List Proposal
     , errors : List String
     }
 
@@ -66,9 +72,10 @@ init =
     , dsGroupInfo = Nothing
     , wizard = Nothing
     , actions = []
+    , proposals = []
+    , descriptions = Dict.empty
     }
-        ! [ PortsDriver.localStorageGetItem portsConfig "testkey"
-          , Task.perform SetDSGroupAddress (Task.succeed "0x8a6c28475af5b9fd6a2f53170602fd37318a1321")
+        ! [ PortsDriver.localStorageGetItem portsConfig contractKey
           ]
 
 
@@ -105,7 +112,6 @@ view =
 type Msg
     = TxSentryMsg TxSentry.Msg
     | WalletStatus WalletSentry
-    | ReceiveStorageItem String (Maybe String)
       -- UI Msgs
     | SetDSGroupAddress String
     | MakeProposal String String String
@@ -113,6 +119,8 @@ type Msg
     | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
     | GetProposals (Result Http.Error (List DSGroup.Action))
     | ProposalResponse (Result Http.Error BigInt)
+      -- Local Storage
+    | GetStorageItem String (Maybe String)
       -- Misc Msgs
     | Fail String
     | NoOp
@@ -134,19 +142,44 @@ update msg model =
             }
                 ! []
 
-        ReceiveStorageItem key mValue ->
+        GetStorageItem key mValue ->
             let
+                _ =
+                    Debug.log "localStorage key" key
+
                 _ =
                     Debug.log "localStorage value" mValue
             in
-                model ! []
+                case mValue of
+                    Nothing ->
+                        model ! []
+
+                    Just value ->
+                        if key == contractKey then
+                            model ! [ Task.perform SetDSGroupAddress <| Task.succeed value ]
+                        else if (EthUtils.isAddress key) then
+                            case model.dsGroupAddress of
+                                Nothing ->
+                                    model ! []
+
+                                Just addr ->
+                                    -- decode descriptions stored locally before fetching actions from chain
+                                    case (decodeString decodeDescriptions value) of
+                                        Ok descriptions ->
+                                            { model | descriptions = descriptions }
+                                                ! [ Task.attempt GetProposals (CH.getProposals ethNode.http addr) ]
+
+                                        Err err ->
+                                            { model | errors = err :: model.errors } ! []
+                        else
+                            model ! []
 
         SetDSGroupAddress strAdress ->
             case EthUtils.toAddress strAdress of
                 Ok contractAddress ->
                     { model | dsGroupAddress = Just contractAddress }
-                        ! [ Task.attempt GetProposals (CH.getProposals ethNode.http contractAddress)
-                          , Task.attempt SetDSGroupInfo (DSGroup.getInfo contractAddress |> Eth.call ethNode.http)
+                        ! [ Task.attempt SetDSGroupInfo (DSGroup.getInfo contractAddress |> Eth.call ethNode.http)
+                          , PortsDriver.localStorageGetItem portsConfig <| EthUtils.addressToString contractAddress
                           ]
 
                 Err err ->
@@ -159,7 +192,7 @@ update msg model =
             { model | errors = toString err :: model.errors } ! []
 
         GetProposals (Ok actions) ->
-            { model | actions = actions } ! []
+            { model | actions = actions, proposals = buildProposals model.descriptions actions } ! []
 
         GetProposals (Err err) ->
             { model | errors = toString err :: model.errors } ! []
@@ -222,6 +255,6 @@ subscriptions model =
     Sub.batch
         [ Ports.walletSentry (WalletSentry.decodeToMsg Fail WalletStatus)
         , PortsDriver.subscriptions portsConfig
-            [ PortsDriver.receiveLocalStorageItem ReceiveStorageItem ]
+            [ PortsDriver.receiveLocalStorageItem GetStorageItem ]
         , TxSentry.listen model.txSentry
         ]

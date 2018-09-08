@@ -5,6 +5,11 @@ import Eth.Utils as EthUtils
 import Types exposing (EthNode)
 
 
+contractKey : String
+contractKey =
+    "peregrine.contract"
+
+
 dsGroup : Address
 dsGroup =
     EthUtils.unsafeToAddress "0x8a6c28475af5b9fd6a2f53170602fd37318a1321"

@@ -6,6 +6,7 @@ import Element.Background as BG
 import View.Helper exposing (..)
 import Html
 import Html.Events as Html
+import Html.Attributes as Html
 import Color
 import Element.Font as Font
 import Eth.Utils as EthUtils
@@ -144,17 +145,14 @@ inputHelper : (String -> Msg) -> String -> Element Msg
 inputHelper toMsg label =
     let
         textInput =
-            html <| Html.input [ Html.onInput toMsg ] []
-
-        -- addressTextInput =
-        --     Input.text [ width (px 300), centerX ]
-        --     { onChange = Just toMsg
-        --     , text = ""
-        --     , placeholder = Nothing
-        --     , label = Input.labelLeft [ centerY, moveLeft 10 ] (el [ Font.color Color.white, nunito ] (text label))
-        --     }
+            html <|
+                Html.input [ Html.onInput toMsg, Html.style [ ( "height", "30px" ) ] ]
+                    []
     in
-        row [] [ textInput ]
+        row [ spacing 30 ]
+            [ el [ Font.color Color.white, nunito, paddingXY 30 0 ] (text label)
+            , textInput
+            ]
 
 
 buttonHelper : Step -> String -> Element Msg

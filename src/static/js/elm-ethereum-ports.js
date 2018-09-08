@@ -27,12 +27,12 @@ function walletSentry(toElm, web3) {
 
     setInterval(function () {
         web3.eth.getAccounts(function (e, accounts) {
-            console.log(e);
             if (accounts !== undefined && accounts[0] !== undefined && model.account !== accounts[0]) {
                 model.account = accounts[0];
                 console.log('elm-ethereum-ports: Account set to', model.account);
                 toElm.send(model);
             } else if (e != undefined && model.account !== null) {
+                console.log(e);
                 model.account = null;
                 toElm.send(model);
             }

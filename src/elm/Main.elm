@@ -47,11 +47,11 @@ type ProposalWizard
 type alias Model =
     { txSentry : TxSentry Msg
     , account : Maybe Address
-    , errors : List String
+    , wizard : Maybe ProposalWizard
     , dsGroupAddress : Maybe Address
     , dsGroupInfo : Maybe DSGroup.GetInfo
-    , wizard : Maybe ProposalWizard
     , actions : List DSGroup.Action
+    , errors : List String
     }
 
 

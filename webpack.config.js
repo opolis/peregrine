@@ -35,7 +35,7 @@ var commonConfig = {
     module: {
         noParse: /\.elm$/,
         rules: [{
-            test: /\.(eot|ttf|woff|woff2|svg)$/,
+            test: /\.(eot|ttf|woff|woff2|png|jpg|svg)$/,
             use: 'file-loader?publicPath=../../&name=static/css/[hash].[ext]'
         }]
     },

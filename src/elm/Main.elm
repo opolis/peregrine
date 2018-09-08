@@ -3,7 +3,7 @@ port module Main exposing (..)
 import BigInt exposing (BigInt)
 import Eth
 import Eth.Types exposing (..)
-import Eth.Sentry.Tx as TxSentry exposing (..)
+import Eth.Sentry.Tx as TxSentry
 import Eth.Sentry.Wallet as WalletSentry exposing (WalletSentry)
 import Eth.Units exposing (gwei, eth)
 import Eth.Utils as EthUtils
@@ -17,6 +17,8 @@ import Contract.DSGroup as DSGroup
 import Contract.ERC20
 import Contract.Helpers as CH
 import Constants exposing (ethNode, dsGroup)
+import Types exposing (..)
+import View.Main as MainView
 
 
 -- Main
@@ -32,31 +34,6 @@ main =
         }
 
 
-
--- Screens
-
-
-type ProposalWizard
-    = ChooseProposalType
-    | EthSend
-    | ContractSend
-
-
-
--- Model
-
-
-type alias Model =
-    { txSentry : TxSentry Msg
-    , account : Maybe Address
-    , wizard : Maybe ProposalWizard
-    , dsGroupAddress : Maybe Address
-    , dsGroupInfo : Maybe DSGroup.GetInfo
-    , actions : List DSGroup.Action
-    , errors : List String
-    }
-
-
 init : ( Model, Cmd Msg )
 init =
     { txSentry = TxSentry.init ( Ports.txOut, Ports.txIn ) TxSentryMsg ethNode.http
@@ -65,6 +42,7 @@ init =
     , dsGroupAddress = Nothing
     , dsGroupInfo = Nothing
     , wizard = Nothing
+    , proposals = []
     , actions = []
     }
         ! [ PortsDriver.localStorageGetItem portsConfig "testkey"
@@ -89,33 +67,14 @@ portsConfig =
 -- view : Model -> Html Msg
 
 
+programView : Model -> Html Msg
 programView model =
-    layout [] view
-
-
-view =
-    el [] (text "Test")
+    layout [] (MainView.view model)
 
 
 
 -- Update
 -- , Task.attempt GetProposals (CH.getProposals ethNode dsGroup)
-
-
-type Msg
-    = TxSentryMsg TxSentry.Msg
-    | WalletStatus WalletSentry
-    | ReceiveStorageItem String (Maybe String)
-      -- UI Msgs
-    | SetDSGroupAddress String
-    | MakeProposal String String String
-      -- Chain Msgs
-    | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
-    | GetProposals (Result Http.Error (List DSGroup.Action))
-    | ProposalResponse (Result Http.Error BigInt)
-      -- Misc Msgs
-    | Fail String
-    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -141,8 +100,8 @@ update msg model =
             in
                 model ! []
 
-        SetDSGroupAddress strAdress ->
-            case EthUtils.toAddress strAdress of
+        SetDSGroupAddress strAddress ->
+            case EthUtils.toAddress strAddress of
                 Ok contractAddress ->
                     { model | dsGroupAddress = Just contractAddress }
                         ! [ Task.attempt GetProposals (CH.getProposals ethNode.http contractAddress)
@@ -150,7 +109,7 @@ update msg model =
                           ]
 
                 Err err ->
-                    { model | errors = err :: model.errors } ! []
+                    model ! []
 
         SetDSGroupInfo (Ok dsGroupInfo) ->
             { model | dsGroupInfo = Just dsGroupInfo } ! []

@@ -10,6 +10,8 @@ import Html exposing (..)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Value)
+import Ports
+import PortsDriver exposing (..)
 import Process
 import Task
 
@@ -43,6 +45,14 @@ type alias EthNode =
     }
 
 
+portsConfig : Config Msg
+portsConfig =
+    { output = Ports.output
+    , input = Ports.input
+    , fail = Fail
+    }
+
+
 node : EthNode
 node =
     { http = "http://127.0.0.1:8545"
@@ -52,7 +62,7 @@ node =
 
 init : ( Model, Cmd Msg )
 init =
-    { txSentry = TxSentry.init ( txOut, txIn ) TxSentryMsg node.http
+    { txSentry = TxSentry.init ( Ports.txOut, Ports.txIn ) TxSentryMsg node.http
     , account = Nothing
     , node = node
     , blockNumber = Nothing
@@ -62,7 +72,9 @@ init =
     , blockDepth = ""
     , errors = []
     }
-        ! [ Task.attempt PollBlock (Eth.getBlockNumber node.http) ]
+        ! [ Task.attempt PollBlock (Eth.getBlockNumber node.http)
+          , PortsDriver.localStorageGetItem portsConfig "testkey"
+          ]
 
 
 
@@ -111,6 +123,7 @@ type Msg
     | WatchTx (Result String Tx)
     | WatchTxReceipt (Result String TxReceipt)
     | TrackTx TxTracker
+    | ReceiveStorageItem String (Maybe String)
     | Fail String
     | NoOp
 
@@ -184,6 +197,13 @@ update msg model =
         TrackTx blockDepth ->
             { model | blockDepth = toString blockDepth } ! []
 
+        ReceiveStorageItem key mValue ->
+            let
+                _ =
+                    Debug.log "localStorage value" mValue
+            in
+                model ! []
+
         Fail str ->
             let
                 _ =
@@ -198,19 +218,8 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ walletSentry (WalletSentry.decodeToMsg Fail WalletStatus)
+        [ Ports.walletSentry (WalletSentry.decodeToMsg Fail WalletStatus)
+        , PortsDriver.subscriptions portsConfig
+            [ PortsDriver.receiveLocalStorageItem ReceiveStorageItem ]
         , TxSentry.listen model.txSentry
         ]
-
-
-
--- Ports
-
-
-port walletSentry : (Value -> msg) -> Sub msg
-
-
-port txOut : Value -> Cmd msg
-
-
-port txIn : (Value -> msg) -> Sub msg

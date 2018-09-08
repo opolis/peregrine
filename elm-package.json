@@ -24,6 +24,7 @@
         "hickscorp/elm-bigint": "1.0.1 <= v < 2.0.0",
         "mdgriffith/stylish-elephants": "6.0.2 <= v < 7.0.0",
         "nathanjohnson320/base58": "2.0.0 <= v < 3.0.0",
+        "pdamoc/elm-ports-driver": "4.0.0 <= v < 5.0.0",
         "prozacchiwawa/elm-keccak": "1.0.1 <= v < 2.0.0",
         "rtfeldman/hex": "1.0.0 <= v < 2.0.0",
         "zwilias/elm-utf-tools": "1.0.1 <= v < 2.0.0"

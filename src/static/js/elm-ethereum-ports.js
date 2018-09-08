@@ -25,18 +25,19 @@ function walletSentry(toElm, web3) {
 
     var model = { account: null, networkId: 4 };
 
-    web3.eth.net.getId(function(e, networkId) {
-        model.networkId = parseInt(networkId);
-        setInterval(function () {
-            web3.eth.getAccounts(function (e, accounts) {
-                if (model.account !== accounts[0]) {
-                    model.account = accounts[0];
-                    console.log('elm-ethereum-ports: Account set to', model.account);
-                    toElm.send(model);
-                }
-            });
-        }, 5000);
-    });
+    setInterval(function () {
+        web3.eth.getAccounts(function (e, accounts) {
+            console.log(e);
+            if (accounts !== undefined && accounts[0] !== undefined && model.account !== accounts[0]) {
+                model.account = accounts[0];
+                console.log('elm-ethereum-ports: Account set to', model.account);
+                toElm.send(model);
+            } else if (e != undefined && model.account !== null) {
+                model.account = null;
+                toElm.send(model);
+            }
+        });
+    }, 2500);
 }
 
 

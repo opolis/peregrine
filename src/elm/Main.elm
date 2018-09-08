@@ -45,10 +45,10 @@ init =
     , errors = []
     , dsGroupAddress = Nothing
     , dsGroupInfo = Nothing
-    , wizard = Nothing
+    , wizard = Just Wizard.init
     , proposals = []
     , actions = []
-    , screen = Splash
+    , screen = ProposalList
     , descriptions = Dict.empty
     }
         ! [ PortsDriver.localStorageGetItem portsConfig contractKey
@@ -168,6 +168,14 @@ update msg model =
 
         GetProposals (Err err) ->
             { model | errors = toString err :: model.errors } ! []
+
+        ToggleWizard ->
+            case model.wizard of
+                Nothing ->
+                    { model | wizard = Just Wizard.init } ! []
+
+                Just _ ->
+                    { model | wizard = Nothing } ! []
 
         MakeProposal target callData value ->
             case model.dsGroupAddress of

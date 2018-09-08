@@ -34,6 +34,7 @@ type Msg
     | WizardMsg Wizard.Msg
       -- UI Msgs
     | SetDSGroupAddress String
+    | ToggleWizard
     | MakeProposal String String String
       -- Chain Msgs
     | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)

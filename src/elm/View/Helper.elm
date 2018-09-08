@@ -29,3 +29,7 @@ bigLogo attrs =
 
 blue =
     Color.rgb 44 197 195
+
+
+grey =
+    Color.rgb 249 249 249

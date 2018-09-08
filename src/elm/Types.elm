@@ -24,6 +24,8 @@ type alias Model =
     , actions : List DSGroup.Action
     , descriptions : Descriptions
     , proposals : List Proposal
+    , ethUSD : Maybe Float
+    , walletBalance : Maybe Float
     , errors : List String
     }
 
@@ -34,6 +36,7 @@ type Msg
     | WizardMsg Wizard.Msg
       -- UI Msgs
     | SetDSGroupAddress String
+    | ToggleWizard
     | MakeProposal String String String
       -- Chain Msgs
     | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
@@ -41,6 +44,8 @@ type Msg
     | ProposalResponse (Result Http.Error BigInt)
       -- Local Storage
     | GetStorageItem String (Maybe String)
+      -- CoinCap
+    | EthPrice (Result Http.Error Float)
       -- Misc Msgs
     | Fail String
     | NoOp

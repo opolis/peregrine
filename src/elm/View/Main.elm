@@ -4,9 +4,9 @@ import Element exposing (..)
 import Element.Input as Input
 import Element.Background as BG
 import Types exposing (..)
-import Contract.DSGroup exposing (Action, GetInfo)
 import Color
 import View.Helper exposing (..)
+import View.ProposalList as PropList
 import Element.Font as Font
 
 
@@ -16,10 +16,10 @@ view model =
         [ navBar model
         , case model.screen of
             Splash ->
-                splashScreen model
+                splashScreen
 
             ProposalList ->
-                none
+                PropList.view model
         ]
 
 
@@ -49,16 +49,15 @@ addressInput =
             , label = Input.labelLeft [ centerY, moveLeft 10 ] (el greyRoboto (text "Multi-sig wallet Address:"))
             }
     in
-        row []
-            [ Input.text [ width (px 300), centerX ] addressTextInput
-            ]
+        row [] [ Input.text [ width (px 300), centerX ] addressTextInput ]
 
 
 
--- Splash Scren
+-- Splash Screen
 
 
-splashScreen model =
+splashScreen : Element Msg
+splashScreen =
     row [ width fill, height fill, BG.image "static/img/background.svg" ]
         [ row [ spacing 100 ]
             [ column [ centerX, width shrink ]
@@ -74,6 +73,7 @@ splashScreen model =
 -- Attributes
 
 
+whiteNunito : List (Attribute Msg)
 whiteNunito =
     [ nunito, Font.color Color.white, Font.size 16 ]
 

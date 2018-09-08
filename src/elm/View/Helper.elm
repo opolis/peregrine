@@ -36,3 +36,6 @@ paddingTop n =
     , bottom = 0
     , left = 0
     }
+
+grey =
+    Color.rgb 249 249 249

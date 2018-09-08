@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 import BigInt exposing (BigInt)
+import CoinCap exposing (getPrice)
 import Dict
 import Eth
 import Eth.Types exposing (..)
@@ -23,6 +24,8 @@ import Types exposing (..)
 import Json.Decode exposing (decodeString)
 import View.Main as MainView
 import View.Wizard as Wizard
+import Time
+import Process
 
 
 -- Main
@@ -45,13 +48,16 @@ init =
     , errors = []
     , dsGroupAddress = Nothing
     , dsGroupInfo = Nothing
-    , wizard = Nothing
+    , wizard = Just Wizard.init
     , proposals = []
     , actions = []
-    , screen = Splash
+    , screen = ProposalList
+    , ethUSD = Nothing
+    , walletBalance = Nothing
     , descriptions = Dict.empty
     }
         ! [ PortsDriver.localStorageGetItem portsConfig contractKey
+          , Task.attempt EthPrice <| getPrice "ETH"
           ]
 
 
@@ -169,6 +175,14 @@ update msg model =
         GetProposals (Err err) ->
             { model | errors = toString err :: model.errors } ! []
 
+        ToggleWizard ->
+            case model.wizard of
+                Nothing ->
+                    { model | wizard = Just Wizard.init } ! []
+
+                Just _ ->
+                    { model | wizard = Nothing } ! []
+
         MakeProposal target callData value ->
             case model.dsGroupAddress of
                 Nothing ->
@@ -210,6 +224,17 @@ update msg model =
 
         ProposalResponse (Err err) ->
             { model | errors = toString err :: model.errors } ! []
+
+        EthPrice (Ok price) ->
+            { model | ethUSD = Just price }
+                ! [ Task.attempt EthPrice
+                        (Process.sleep (10 * Time.second)
+                            |> Task.andThen ((\_ -> getPrice "ETH"))
+                        )
+                  ]
+
+        EthPrice (Err err) ->
+            { model | ethUSD = Nothing, errors = (toString err) :: model.errors } ! []
 
         Fail str ->
             let

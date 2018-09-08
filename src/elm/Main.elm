@@ -1,19 +1,16 @@
 port module Main exposing (..)
 
 import Eth
-import Eth.Net as Net exposing (NetworkId(..))
 import Eth.Types exposing (..)
 import Eth.Sentry.Tx as TxSentry exposing (..)
 import Eth.Sentry.Wallet as WalletSentry exposing (WalletSentry)
 import Eth.Units exposing (gwei, eth)
 import Eth.Utils as EthUtils
-import Html exposing (..)
-import Html.Events exposing (onClick)
+import Html exposing (Html)
+import Element exposing (..)
 import Http
-import Json.Decode as Decode exposing (Value)
 import Ports
 import PortsDriver exposing (..)
-import Process
 import Task
 import Contract.DSGroup as DSGroup
 import Contract.ERC20
@@ -28,7 +25,7 @@ main : Program Never Model Msg
 main =
     Html.program
         { init = init
-        , view = view
+        , view = programView
         , update = update
         , subscriptions = subscriptions
         }
@@ -51,7 +48,8 @@ type alias Model =
     { txSentry : TxSentry Msg
     , account : Maybe Address
     , errors : List String
-    , dsGroup : Maybe Address
+    , dsGroupAddress : Maybe Address
+    , dsGroupInfo : Maybe DSGroup.GetInfo
     , wizard : Maybe ProposalWizard
     , actions : List DSGroup.Action
     }
@@ -62,7 +60,8 @@ init =
     { txSentry = TxSentry.init ( Ports.txOut, Ports.txIn ) TxSentryMsg ethNode.http
     , account = Nothing
     , errors = []
-    , dsGroup = Nothing
+    , dsGroupAddress = Nothing
+    , dsGroupInfo = Nothing
     , wizard = Nothing
     , actions = []
     }
@@ -84,11 +83,15 @@ portsConfig =
 
 
 -- View
+-- view : Model -> Html Msg
 
 
-view : Model -> Html Msg
-view model =
-    div [] []
+programView model =
+    layout [] view
+
+
+view =
+    el [] (text "Test")
 
 
 
@@ -101,7 +104,8 @@ type Msg
     | WalletStatus WalletSentry
     | ReceiveStorageItem String (Maybe String)
       -- UI Msgs
-    | SetDSGroup String
+    | SetDSGroupAddress String
+    | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
       -- Chain Msgs
     | GetProposals (Result Http.Error (List DSGroup.Action))
       -- Misc Msgs
@@ -132,14 +136,22 @@ update msg model =
             in
                 model ! []
 
-        SetDSGroup strAdress ->
+        SetDSGroupAddress strAdress ->
             case EthUtils.toAddress strAdress of
                 Ok contractAddress ->
-                    { model | dsGroup = Just contractAddress }
-                        ! [ Task.attempt GetProposals (CH.getProposals ethNode.http contractAddress) ]
+                    { model | dsGroupAddress = Just contractAddress }
+                        ! [ Task.attempt GetProposals (CH.getProposals ethNode.http contractAddress)
+                          , Task.attempt SetDSGroupInfo (DSGroup.getInfo contractAddress |> Eth.call ethNode.http)
+                          ]
 
                 Err err ->
-                    model ! []
+                    { model | errors = err :: model.errors } ! []
+
+        SetDSGroupInfo (Ok dsGroupInfo) ->
+            { model | dsGroupInfo = Just dsGroupInfo } ! []
+
+        SetDSGroupInfo (Err err) ->
+            { model | errors = toString err :: model.errors } ! []
 
         GetProposals (Ok actions) ->
             { model | actions = actions } ! []

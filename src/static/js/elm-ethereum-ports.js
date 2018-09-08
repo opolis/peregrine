@@ -23,7 +23,7 @@ function walletSentry(toElm, web3) {
     checkToElmPort(toElm);
     checkWeb3(web3);
 
-    var model = { account: null, networkId: 5 };
+    var model = { account: null, networkId: 4 };
 
     web3.eth.net.getId(function(e, networkId) {
         model.networkId = parseInt(networkId);

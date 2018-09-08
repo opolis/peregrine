@@ -5,8 +5,8 @@ import ProviderEngine from "web3-provider-engine";
 import FetchSubprovider from "web3-provider-engine/subproviders/fetch";
 
 // configuration can be overrided by env variables
-const rpcUrl = "http://127.0.0.1:8545";
-const networkId = 5;
+const rpcUrl = "https://rinkeby.infura.io/";
+const networkId = 4;
 
 export const getReadOnlyWeb3 = async () => {
   const engine = new ProviderEngine();

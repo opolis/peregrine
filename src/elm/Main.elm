@@ -12,7 +12,7 @@ import Http
 import Json.Decode as Decode exposing (Value)
 import Process
 import Task
-
+import Contract.DSGroup
 
 main : Program Never Model Msg
 main =
@@ -45,8 +45,8 @@ type alias EthNode =
 
 node : EthNode
 node =
-    { http = "http://127.0.0.1:8545"
-    , ws = ""
+    { http = "https://rinkeby.infura.io/"
+    , ws = "wss://rinkeby.infura.io/ws"
     }
 
 

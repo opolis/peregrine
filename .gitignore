@@ -3,3 +3,4 @@ elm-stuff
 src/contracts
 out
 .env
+.DS_Store

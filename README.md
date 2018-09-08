@@ -1,4 +1,4 @@
 peregrine
 =========
 
-The Art of Multi-Signature
+The Art of Multisig

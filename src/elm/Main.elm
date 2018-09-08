@@ -6,6 +6,7 @@ import Eth.Types exposing (..)
 import Eth.Sentry.Tx as TxSentry exposing (..)
 import Eth.Sentry.Wallet as WalletSentry exposing (WalletSentry)
 import Eth.Units exposing (gwei, eth)
+import Eth.Utils as EthUtils
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Http
@@ -14,6 +15,7 @@ import Process
 import Task
 import Contract.DSGroup
 import Contract.ERC20
+import Constants exposing (ethNode, dsGroup)
 
 
 main : Program Never Model Msg
@@ -33,22 +35,9 @@ type alias Model =
     }
 
 
-type alias EthNode =
-    { http : HttpProvider
-    , ws : WebsocketProvider
-    }
-
-
-node : EthNode
-node =
-    { http = "https://rinkeby.infura.io/"
-    , ws = "wss://rinkeby.infura.io/ws"
-    }
-
-
 init : ( Model, Cmd Msg )
 init =
-    { txSentry = TxSentry.init ( txOut, txIn ) TxSentryMsg node.http
+    { txSentry = TxSentry.init ( txOut, txIn ) TxSentryMsg ethNode.http
     , account = Nothing
     , errors = []
     }

@@ -1,6 +1,7 @@
 port module Main exposing (..)
 
 import BigInt exposing (BigInt)
+import Dict
 import Eth
 import Eth.Types exposing (..)
 import Eth.Sentry.Tx as TxSentry
@@ -16,9 +17,12 @@ import Task
 import Contract.DSGroup as DSGroup
 import Contract.ERC20
 import Contract.Helpers as CH
-import Constants exposing (ethNode, dsGroup)
+import Constants exposing (contractKey, dsGroup, ethNode)
+import Result
 import Types exposing (..)
+import Json.Decode exposing (decodeString)
 import View.Main as MainView
+import View.Wizard as Wizard
 
 
 -- Main
@@ -28,7 +32,7 @@ main : Program Never Model Msg
 main =
     Html.program
         { init = init
-        , view = programView
+        , view = view
         , update = update
         , subscriptions = subscriptions
         }
@@ -44,9 +48,10 @@ init =
     , wizard = Nothing
     , proposals = []
     , actions = []
+    , screen = Splash
+    , descriptions = Dict.empty
     }
-        ! [ PortsDriver.localStorageGetItem portsConfig "testkey"
-          , Task.perform SetDSGroupAddress (Task.succeed "0x8a6c28475af5b9fd6a2f53170602fd37318a1321")
+        ! [ PortsDriver.localStorageGetItem portsConfig contractKey
           ]
 
 
@@ -64,17 +69,15 @@ portsConfig =
 
 
 -- View
--- view : Model -> Html Msg
 
 
-programView : Model -> Html Msg
-programView model =
+view : Model -> Html Msg
+view model =
     layout [] (MainView.view model)
 
 
 
 -- Update
--- , Task.attempt GetProposals (CH.getProposals ethNode dsGroup)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -87,25 +90,68 @@ update msg model =
             in
                 ( { model | txSentry = subModel }, subCmd )
 
+        WizardMsg subMsg ->
+            case model.wizard of
+                Just wizard ->
+                    let
+                        ( subModel, subCmd ) =
+                            Wizard.update subMsg wizard
+                    in
+                        ( { model | wizard = Just subModel }
+                        , Cmd.map WizardMsg subCmd
+                        )
+
+                Nothing ->
+                    model ! []
+
         WalletStatus walletSentry ->
             { model
                 | account = walletSentry.account
             }
                 ! []
 
-        ReceiveStorageItem key mValue ->
+        GetStorageItem key mValue ->
             let
+                _ =
+                    Debug.log "localStorage key" key
+
                 _ =
                     Debug.log "localStorage value" mValue
             in
-                model ! []
+                case mValue of
+                    Nothing ->
+                        if (EthUtils.isAddress key) then
+                            { model | descriptions = Dict.empty, proposals = [], actions = [], dsGroupInfo = Nothing } ! []
+                        else
+                            model ! []
+
+                    Just value ->
+                        if key == contractKey then
+                            model ! [ Task.perform SetDSGroupAddress <| Task.succeed value ]
+                        else if (EthUtils.isAddress key) then
+                            case model.dsGroupAddress of
+                                Nothing ->
+                                    model ! []
+
+                                Just addr ->
+                                    -- decode descriptions stored locally before fetching actions from chain
+                                    case (decodeString decodeDescriptions value) of
+                                        Ok descriptions ->
+                                            { model | descriptions = descriptions }
+                                                ! [ Task.attempt GetProposals (CH.getProposals ethNode.http addr) ]
+
+                                        Err err ->
+                                            { model | errors = err :: model.errors } ! []
+                        else
+                            model ! []
 
         SetDSGroupAddress strAddress ->
             case EthUtils.toAddress strAddress of
                 Ok contractAddress ->
                     { model | dsGroupAddress = Just contractAddress }
-                        ! [ Task.attempt GetProposals (CH.getProposals ethNode.http contractAddress)
-                          , Task.attempt SetDSGroupInfo (DSGroup.getInfo contractAddress |> Eth.call ethNode.http)
+                        ! [ Task.attempt SetDSGroupInfo (DSGroup.getInfo contractAddress |> Eth.call ethNode.http)
+                          , PortsDriver.localStorageSetItem portsConfig contractKey (EthUtils.addressToString contractAddress)
+                          , PortsDriver.localStorageGetItem portsConfig <| EthUtils.addressToString contractAddress
                           ]
 
                 Err err ->
@@ -118,7 +164,7 @@ update msg model =
             { model | errors = toString err :: model.errors } ! []
 
         GetProposals (Ok actions) ->
-            { model | actions = actions } ! []
+            { model | actions = actions, proposals = buildProposals model.descriptions actions } ! []
 
         GetProposals (Err err) ->
             { model | errors = toString err :: model.errors } ! []
@@ -181,6 +227,6 @@ subscriptions model =
     Sub.batch
         [ Ports.walletSentry (WalletSentry.decodeToMsg Fail WalletStatus)
         , PortsDriver.subscriptions portsConfig
-            [ PortsDriver.receiveLocalStorageItem ReceiveStorageItem ]
+            [ PortsDriver.receiveLocalStorageItem GetStorageItem ]
         , TxSentry.listen model.txSentry
         ]

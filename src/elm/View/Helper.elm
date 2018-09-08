@@ -2,6 +2,7 @@ module View.Helper exposing (..)
 
 import Element.Font as Font
 import Element exposing (..)
+import Color
 
 
 nunito =
@@ -20,3 +21,11 @@ roboto =
 
 smallLogo attrs =
     image attrs { src = "static/img/small-logo.png", description = "Small Peregrin Logo" }
+
+
+bigLogo attrs =
+    image attrs { src = "static/img/large-logo.png", description = "Big Peregrin Logo" }
+
+
+blue =
+    Color.rgb 44 197 195

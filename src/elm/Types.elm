@@ -8,16 +8,7 @@ import Eth.Sentry.Tx as TxSentry exposing (TxSentry)
 import Http
 import BigInt exposing (BigInt)
 import Eth.Sentry.Wallet exposing (WalletSentry)
-
-
--- Screens
-
-
-type ProposalWizard
-    = ChooseProposalType
-    | EthSend
-    | ContractSend
-
+import View.Wizard as Wizard
 
 
 -- Model
@@ -26,10 +17,12 @@ type ProposalWizard
 type alias Model =
     { txSentry : TxSentry Msg
     , account : Maybe Address
-    , wizard : Maybe ProposalWizard
+    , wizard : Maybe Wizard.Model
+    , screen : Screen
     , dsGroupAddress : Maybe Address
     , dsGroupInfo : Maybe DSGroup.GetInfo
     , actions : List DSGroup.Action
+    , descriptions : Descriptions
     , proposals : List Proposal
     , errors : List String
     }
@@ -38,7 +31,7 @@ type alias Model =
 type Msg
     = TxSentryMsg TxSentry.Msg
     | WalletStatus WalletSentry
-    | ReceiveStorageItem String (Maybe String)
+    | WizardMsg Wizard.Msg
       -- UI Msgs
     | SetDSGroupAddress String
     | MakeProposal String String String
@@ -46,9 +39,20 @@ type Msg
     | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
     | GetProposals (Result Http.Error (List DSGroup.Action))
     | ProposalResponse (Result Http.Error BigInt)
+      -- Local Storage
+    | GetStorageItem String (Maybe String)
       -- Misc Msgs
     | Fail String
     | NoOp
+
+
+
+-- Screens
+
+
+type Screen
+    = Splash
+    | ProposalList
 
 
 type alias EthNode =

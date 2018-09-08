@@ -14,7 +14,12 @@ view : Model -> Element Msg
 view model =
     column [ width fill ]
         [ navBar model
-        , el [] (splashScreen model)
+        , case model.screen of
+            Splash ->
+                splashScreen model
+
+            ProposalList ->
+                none
         ]
 
 
@@ -54,7 +59,15 @@ addressInput =
 
 
 splashScreen model =
-    el [] (text <| toString model.dsGroupAddress)
+    row [ width fill, height fill, BG.image "static/img/background.svg" ]
+        [ row [ spacing 100 ]
+            [ column [ centerX, width shrink ]
+                [ el [ centerY, nunito, Font.color Color.white, Font.size 46 ] (text "Peregrine")
+                , el [ centerY, nunito, Font.color Color.white, Font.size 24 ] (text "The art of multi-signature wallets")
+                ]
+            , bigLogo [ centerX, height (px 336), width (px 308) ]
+            ]
+        ]
 
 
 

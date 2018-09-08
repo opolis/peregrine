@@ -5,8 +5,10 @@ function txSentry(fromElm, toElm, web3) {
     checkWeb3(web3);
 
     fromElm.subscribe(function (txData) {
+        console.log("TxData", txData)
         try {
             web3.eth.sendTransaction(txData.txParams, function (e, r) {
+                console.log("Error", e);
                 toElm.send({ ref: txData.ref, txHash: r || e });
             });
         } catch (error) {
@@ -21,7 +23,7 @@ function walletSentry(toElm, web3) {
     checkToElmPort(toElm);
     checkWeb3(web3);
 
-    var model = { account: null, networkId: 0 };
+    var model = { account: null, networkId: 5 };
 
     web3.eth.net.getId(function(e, networkId) {
         model.networkId = parseInt(networkId);

@@ -6,7 +6,7 @@ import FetchSubprovider from "web3-provider-engine/subproviders/fetch";
 
 // configuration can be overrided by env variables
 const rpcUrl = "http://127.0.0.1:8545";
-const networkId = 5777;
+const networkId = 5;
 
 export const getReadOnlyWeb3 = async () => {
   const engine = new ProviderEngine();

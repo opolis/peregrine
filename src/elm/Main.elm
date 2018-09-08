@@ -5,7 +5,7 @@ import Eth.Net as Net exposing (NetworkId(..))
 import Eth.Types exposing (..)
 import Eth.Sentry.Tx as TxSentry exposing (..)
 import Eth.Sentry.Wallet as WalletSentry exposing (WalletSentry)
-import Eth.Units exposing (gwei)
+import Eth.Units exposing (gwei, eth)
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Http
@@ -14,9 +14,9 @@ import Process
 import Task
 
 
-main : Program Int Model Msg
+main : Program Never Model Msg
 main =
-    Html.programWithFlags
+    Html.program
         { init = init
         , view = view
         , update = update
@@ -37,46 +37,32 @@ type alias Model =
     }
 
 
-init : Int -> ( Model, Cmd Msg )
-init networkId =
-    let
-        node =
-            Net.toNetworkId networkId
-                |> ethNode
-    in
-        { txSentry = TxSentry.init ( txOut, txIn ) TxSentryMsg node.http
-        , account = Nothing
-        , node = node
-        , blockNumber = Nothing
-        , txHash = Nothing
-        , tx = Nothing
-        , txReceipt = Nothing
-        , blockDepth = ""
-        , errors = []
-        }
-            ! [ Task.attempt PollBlock (Eth.getBlockNumber node.http) ]
-
-
 type alias EthNode =
     { http : HttpProvider
     , ws : WebsocketProvider
     }
 
 
-ethNode : NetworkId -> EthNode
-ethNode networkId =
-    case networkId of
-        Mainnet ->
-            EthNode "https://mainnet.infura.io/" "wss://mainnet.infura.io/ws"
+node : EthNode
+node =
+    { http = "http://127.0.0.1:8545"
+    , ws = ""
+    }
 
-        Ropsten ->
-            EthNode "https://ropsten.infura.io/" "wss://ropsten.infura.io/ws"
 
-        Rinkeby ->
-            EthNode "https://rinkeby.infura.io/" "wss://rinkeby.infura.io/ws"
-
-        _ ->
-            EthNode "UnknownEthNetwork" "UnknownEthNetwork"
+init : ( Model, Cmd Msg )
+init =
+    { txSentry = TxSentry.init ( txOut, txIn ) TxSentryMsg node.http
+    , account = Nothing
+    , node = node
+    , blockNumber = Nothing
+    , txHash = Nothing
+    , tx = Nothing
+    , txReceipt = Nothing
+    , blockDepth = ""
+    , errors = []
+    }
+        ! [ Task.attempt PollBlock (Eth.getBlockNumber node.http) ]
 
 
 
@@ -142,7 +128,6 @@ update msg model =
         WalletStatus walletSentry ->
             { model
                 | account = walletSentry.account
-                , node = ethNode walletSentry.networkId
             }
                 ! []
 
@@ -162,7 +147,7 @@ update msg model =
                     , from = model.account
                     , gas = Nothing
                     , gasPrice = Just <| gwei 4
-                    , value = Just <| gwei 1
+                    , value = Just <| eth 1
                     , data = Nothing
                     , nonce = Nothing
                     }

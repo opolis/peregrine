@@ -5,7 +5,7 @@ import wallet from './js/wallets';
 
 window.web3 = wallet[0].getWeb3();
 
-var Elm = require( '../../src/Main' );
+var Elm = require( '../elm/Main' );
 var app;
 
 window.addEventListener('load', function () {

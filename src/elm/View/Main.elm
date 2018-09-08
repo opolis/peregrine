@@ -46,7 +46,7 @@ addressInput =
             { onChange = Just SetDSGroupAddress
             , text = ""
             , placeholder = Nothing
-            , label = Input.labelLeft [ centerY, moveLeft 10 ] (el whiteNunito (text "Multi-sig wallet Address:"))
+            , label = Input.labelLeft [ centerY, moveLeft 10 ] (el greyRoboto (text "Multi-sig wallet Address:"))
             }
     in
         row []
@@ -63,7 +63,7 @@ splashScreen model =
         [ row [ spacing 100 ]
             [ column [ centerX, width shrink ]
                 [ el [ centerY, nunito, Font.color Color.white, Font.size 46 ] (text "Peregrine")
-                , el [ centerY, nunito, Font.color Color.white, Font.size 24 ] (text "The art of multi-signature wallets")
+                , el [ centerY, nunito, Font.color Color.white, Font.size 24, paddingTop 10 ] (text "The art of multi-signature wallets")
                 ]
             , bigLogo [ centerX, height (px 336), width (px 308) ]
             ]
@@ -76,3 +76,6 @@ splashScreen model =
 
 whiteNunito =
     [ nunito, Font.color Color.white, Font.size 16 ]
+
+greyRoboto = 
+    [ roboto, Font.color Color.grey, Font.size 16, Font.light]

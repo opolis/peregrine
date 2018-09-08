@@ -13,6 +13,8 @@ import Json.Decode as Decode exposing (Value)
 import Process
 import Task
 import Contract.DSGroup
+import Contract.ERC20
+
 
 main : Program Never Model Msg
 main =

@@ -27,9 +27,9 @@ countDownFrom : BigInt -> List BigInt
 countDownFrom num =
     let
         countDownHelper num acc =
-            case BigInt.compare num zero of
+            case BigInt.compare num one of
                 EQ ->
-                    zero :: acc
+                    one :: acc
 
                 _ ->
                     countDownHelper (BigInt.sub num one) (num :: acc)
@@ -39,7 +39,7 @@ countDownFrom num =
                 []
 
             False ->
-                countDownHelper (BigInt.sub num one) []
+                countDownHelper num []
 
 
 zero : BigInt

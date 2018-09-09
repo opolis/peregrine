@@ -55,6 +55,7 @@ init =
     , ethUSD = Nothing
     , walletBalance = Nothing
     , descriptions = Dict.empty
+    , somethingIsPending = False
     }
         ! [ PortsDriver.localStorageGetItem portsConfig contractKey
           , Task.attempt EthPrice <| getPrice "ETH"
@@ -106,7 +107,7 @@ update msg model =
                                 |> (\s -> { s | to = Just userAddress })
                                 |> TxSentry.sendWithReceipt ProposalTx ProposalTxReceipt model.txSentry
                     in
-                        model ! []
+                        { model | txSentry = newTxSentry, somethingIsPending = True } ! [ cmd ]
 
                 _ ->
                     model ! []
@@ -205,7 +206,7 @@ update msg model =
             { model | errors = toString err :: model.errors } ! []
 
         ProposalTxReceipt (Ok txReceipt) ->
-            { model | wizard = Nothing } ! []
+            { model | wizard = Nothing, somethingIsPending = False } ! []
 
         ProposalTxReceipt (Err err) ->
             { model | errors = toString err :: model.errors } ! []

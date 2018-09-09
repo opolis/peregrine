@@ -213,7 +213,7 @@ update msg model =
         EthPrice (Ok price) ->
             { model | ethUSD = Just price }
                 ! [ Task.attempt EthPrice
-                        (Process.sleep (10 * Time.second)
+                        (Process.sleep (100 * Time.second)
                             |> Task.andThen ((\_ -> getPrice "ETH"))
                         )
                   ]

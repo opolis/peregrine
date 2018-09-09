@@ -18,13 +18,14 @@ view model =
         Nothing ->
             column []
                 [ newProposalBar (viewIonIcon "ios-arrow-dropdown" 16 [])
+                , map WizardMsg (Wizard.view (height (px 1)) Wizard.init model.account)
                 , viewProposals model
                 ]
 
         Just subModel ->
             column []
                 [ newProposalBar (viewIonIcon "ios-arrow-dropup" 16 [])
-                , map WizardMsg (Wizard.view subModel model.account)
+                , map WizardMsg (Wizard.view (height (px 866)) subModel model.account)
                 ]
 
 

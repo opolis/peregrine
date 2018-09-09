@@ -52,19 +52,25 @@ type ContractStep
     | ContractConfirm
 
 
-view : Model -> Maybe Address -> Element Msg
-view model userAddress =
-    column [ BG.image "static/img/background.svg", height fill ]
-        [ case model.step of
-            Choose ->
-                viewChoose
+view : Attribute Msg -> Model -> Maybe Address -> Element Msg
+view heightAttr model userAddress =
+    column [ BG.image "static/img/background.svg", heightAttr ]
+        [ column [ BG.color (Color.rgba 175 175 175 0.2), heightAttr, transitionAttr ]
+            [ case model.step of
+                Choose ->
+                    viewChoose
 
-            Eth ethStep ->
-                viewEthForm model ethStep userAddress
+                Eth ethStep ->
+                    viewEthForm model ethStep userAddress
 
-            Contract contractStep ->
-                viewContractForm model contractStep userAddress
+                Contract contractStep ->
+                    viewContractForm model contractStep userAddress
+            ]
         ]
+
+
+transitionAttr =
+    htmlAttribute <| Html.style [ ( "transition", "height 400ms" ) ]
 
 
 viewChoose : Element Msg

@@ -27,6 +27,7 @@ type alias Model =
     , ethUSD : Maybe Float
     , walletBalance : Maybe Float
     , errors : List String
+    , somethingIsPending : Bool
     }
 
 

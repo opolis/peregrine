@@ -1,5 +1,7 @@
 module View.ProposalList exposing (..)
 
+import BigInt
+import Color
 import Element exposing (..)
 import Element.Events exposing (..)
 import Types exposing (..)
@@ -15,17 +17,56 @@ view model =
     case model.wizard of
         Nothing ->
             column []
-                [ newProposalBar "V"
+                [ newProposalBar (viewIonIcon "ios-arrow-dropdown" 16 [])
+                , viewProposals model
                 ]
 
         Just subModel ->
             column []
-                [ newProposalBar "^"
+                [ newProposalBar (viewIonIcon "ios-arrow-dropup" 16 [])
                 , map WizardMsg (Wizard.view subModel model.account)
                 ]
 
 
-newProposalBar arrow =
+viewProposals : Model -> Element Msg
+viewProposals model =
+    column [ width fill, height fill, BG.image "static/img/background.svg" ]
+        [ column [ width fill, height shrink, padding 20, spacing 20 ]
+            [ row [ alignTop, spaceEvenly, width fill ]
+                [ text "Proposals", text "Wallet" ]
+            , case model.dsGroupInfo of
+                Nothing ->
+                    -- TODO: hackathon lol
+                    none
+
+                Just info ->
+                    row [ alignTop, spacing 22 ] <|
+                        List.map (viewProposal info) model.proposals
+            ]
+        ]
+
+
+viewProposal : GetInfo -> Proposal -> Element Msg
+viewProposal info proposal =
+    column
+        [ width <| px 290
+        , height <| px 409
+        , paddingXY 18 15
+        , spacing 13
+        , BG.color Color.white
+        ]
+        [ row [ width fill ]
+            [ text <| toString proposal.id
+            , column [ width fill ]
+                [ el [ alignRight ] <| text "3/3"
+                , el [ alignRight ] <| text "Approvals"
+                ]
+            ]
+        , horizontalRule
+        ]
+
+
+newProposalBar icon =
     row
         [ onClick ToggleWizard
         , height (px 60)
@@ -35,5 +76,5 @@ newProposalBar arrow =
         , noTextSelect
         ]
         [ el [ nunito, centerX, centerY ] (text "NEW PROPOSAL")
-        , el [ centerX, centerY ] (text arrow)
+        , el [ centerX, centerY ] icon
         ]

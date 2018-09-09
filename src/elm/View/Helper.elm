@@ -1,9 +1,11 @@
 module View.Helper exposing (..)
 
-import Element.Font as Font
-import Element exposing (..)
 import Color
+import Element exposing (..)
+import Element.Border as Border
+import Element.Font as Font
 import Html.Attributes as Html
+import Html
 
 
 nunito =
@@ -58,5 +60,30 @@ grey =
     Color.rgb 249 249 249
 
 
+darkGrey =
+    Color.rgb 151 151 151
+
+
+horizontalRule =
+    el
+        [ height <| px 1
+        , width fill
+        , Border.width 1
+        , Border.solid
+        , Border.color darkGrey
+        ]
+        none
+
+
 noTextSelect =
     htmlAttribute <| Html.style [ ( "user-select", "none" ) ]
+
+
+viewIonIcon : String -> Float -> List (Attribute msg) -> Element msg
+viewIonIcon iconName size attrs =
+    html <|
+        Html.node "ion-icon"
+            [ Html.attribute "name" iconName
+            , Html.style [ ( "height", toString size ++ "px" ), ( "width", toString size ++ "px" ) ]
+            ]
+            [ Html.div [ Html.attribute "hidden" "true" ] [ Html.text "Opolis ftw" ] ]

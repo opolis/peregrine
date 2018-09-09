@@ -287,16 +287,16 @@ inputHelper toMsg label =
 
 
 backHelper =
-    row [] [ viewIonIcon "arrow-dropleft-circle" 10 [], el [] (text "Back") ]
+    row [ width (px 120), centerX, paddingXY 20 20 ] [ viewIonIcon "arrow-dropleft-circle" 20 [], el [ centerX ] (text "Back") ]
 
 
 forwardHelper =
-    row [] [ el [] (text "Next"), viewIonIcon "arrow-dropright-circle" 10 [] ]
+    row [ width (px 120), centerX, paddingXY 20 20 ] [ el [ centerX ] (text "Next"), viewIonIcon "arrow-dropright-circle" 20 [ centerX ] ]
 
 
 stringHelper : String -> Element Msg
 stringHelper btnText =
-    row [] [ el [] (text btnText) ]
+    row [ width (px 250), centerX, paddingXY 20 20 ] [ el [ centerX ] (text btnText) ]
 
 
 multiLineInput : (String -> Msg) -> Element Msg

@@ -87,7 +87,7 @@ buildProposals descriptions =
     List.indexedMap
         (\index action ->
             { action = action
-            , id = index
+            , id = index + 1
             , description =
                 case (Dict.get (toString index) descriptions) of
                     Nothing ->

@@ -79,8 +79,8 @@ viewChoose =
         [ column [ Font.color Color.white, nunito, centerY, height shrink, spacing 60 ]
             [ el [ centerX ] (text "What would you like to do?")
             , row [ spacing 50 ]
-                [ buttonHelperStep (Eth EthChooseAddress) "Send Eth"
-                , buttonHelperStep (Contract ContractChoice) "Interact With Contract"
+                [ buttonHelperStep (Eth EthChooseAddress) (stringHelper "Send Eth") [ Font.color blue ]
+                , buttonHelperStep (Contract ContractChoice) (stringHelper "Interact With Contract") [ Font.color blue ]
                 ]
             ]
         ]
@@ -100,23 +100,23 @@ viewEthForm model ethStep userAddress =
         case ethStep of
             EthChooseAddress ->
                 column []
-                    [ column [ centerY, height shrink, spacing 40 ]
+                    [ column [ centerY, height shrink, spacing 50 ]
                         [ column [ Font.color Color.white, centerX ]
                             [ el [ centerX, nunito, Font.bold ] (text "Send Eth")
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 1 of 4")
                             ]
-                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Where would you like to send Eth?")
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 50 ] (text "Where would you like to send Eth?")
                         , inputHelper SetToAddress "Address:"
-                        , row [ spacing 50 ]
-                            [ buttonHelperStep (Choose) "Back"
-                            , buttonHelperStep (Eth EthChooseAmount) "Next"
+                        , row [ spacing 50, paddingTop 45 ]
+                            [ buttonHelperStep (Choose) backHelper [ BG.color nearBlack, Font.color darkGrey ]
+                            , buttonHelperStep (Eth EthChooseAmount) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
 
             EthChooseAmount ->
                 column []
-                    [ column [ centerY, height shrink, spacing 40 ]
+                    [ column [ centerY, height shrink, spacing 30 ]
                         [ column [ Font.color Color.white ]
                             [ el [ centerX, nunito, Font.bold ] (text "Send Eth")
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 2 of 4")
@@ -133,15 +133,15 @@ viewEthForm model ethStep userAddress =
                             , el [ centerX, paddingLeft 5 ] (text <| "$" ++ "0.00")
                             ]
                         , row [ spacing 50 ]
-                            [ buttonHelperStep (Eth EthChooseAddress) "Back"
-                            , buttonHelperStep (Eth EthDescription) "Next"
+                            [ buttonHelperStep (Eth EthChooseAddress) backHelper [ BG.color nearBlack, Font.color darkGrey ]
+                            , buttonHelperStep (Eth EthDescription) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
 
             EthDescription ->
                 column []
-                    [ column [ centerY, centerX, height shrink, spacing 60 ]
+                    [ column [ centerY, centerX, height shrink, spacing 50 ]
                         [ column [ Font.color Color.white ]
                             [ el [ centerX, nunito, Font.bold ] (text "Send Eth")
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 3 of 4")
@@ -149,8 +149,8 @@ viewEthForm model ethStep userAddress =
                         , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Why would you like to do this?")
                         , el [ centerX, width shrink ] <| multiLineInput SetDescription
                         , row [ spacing 50 ]
-                            [ buttonHelperStep (Eth EthChooseAmount) "Back"
-                            , buttonHelperStep (Eth EthConfirm) "Next"
+                            [ buttonHelperStep (Eth EthChooseAmount) backHelper [ BG.color nearBlack, Font.color darkGrey ]
+                            , buttonHelperStep (Eth EthConfirm) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
@@ -163,11 +163,11 @@ viewEthForm model ethStep userAddress =
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 4 of 4")
                             ]
                         , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Confirm Proposal")
-                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "to: " ++ addressStr)
-                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "send: " ++ valStr ++ " Eth")
-                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "message: " ++ model.desc)
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "to: " ++ addressStr)
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "send: " ++ valStr ++ " Eth")
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "message: " ++ model.desc)
                         , row [ spacing 50 ]
-                            [ buttonHelperStep (Eth EthDescription) "Back"
+                            [ buttonHelperStep (Eth EthDescription) backHelper [ BG.color nearBlack, Font.color darkGrey ]
                             , case ( userAddress, model.toAddress, model.valAmount ) of
                                 ( Just userAddress_, Just toAddress_, Just valAmount_ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
@@ -202,35 +202,35 @@ viewContractForm model contractStep userAddress =
                             [ el [ centerX, nunito, Font.bold ] (text "Interact with Contract")
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 1 of 4")
                             ]
-                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Where would you like to send Eth?")
-                        , inputHelper SetToAddress "Address:"
-                        , row [ spacing 50 ]
-                            [ buttonHelperStep (Choose) "Back"
-                            , buttonHelperStep (Contract FunctionChoice) "Next"
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Interact with Which Contract?")
+                        , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
+                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "DAI") }
+                        , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
+                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Add contract") }
+                        , row [ spacing 70, paddingTop 40 ]
+                            [ buttonHelperStep (Choose) backHelper [ BG.color nearBlack, Font.color darkGrey ]
+                            , buttonHelperStep (Contract FunctionChoice) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
 
             FunctionChoice ->
                 column []
-                    [ column [ centerY, height shrink, spacing 40 ]
+                    [ column [ centerY, height shrink, spacing 30 ]
                         [ column [ Font.color Color.white ]
                             [ el [ centerX, nunito, Font.bold ] (text "Interact with Contract")
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 2 of 4")
                             ]
-                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "How much ether would you like to send?")
-                        , row [ Font.color Color.white, nunito ]
-                            [ el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "to: ")
-                            , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text addressStr)
-                            ]
-                        , inputHelper SetAmount "Amount:"
-                        , row [ Font.color Color.white, nunito ]
-                            [ el [ centerX ] (text "Powered By Coincap")
-                            , el [ centerX ] (text <| "$" ++ "0.00")
-                            ]
-                        , row [ spacing 50 ]
-                            [ buttonHelperStep (Contract ContractChoice) "Back"
-                            , buttonHelperStep (Contract ContractDescription) "Next"
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "What function would you like to call?")
+                        , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
+                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Shake It") }
+                        , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
+                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Twist It") }
+                        , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
+                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Bop It") }
+                        , row [ spacing 70, paddingTop 10 ]
+                            [ buttonHelperStep (Contract ContractChoice) backHelper [ BG.color nearBlack, Font.color darkGrey ]
+                            , buttonHelperStep (Contract ContractDescription) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
@@ -242,11 +242,11 @@ viewContractForm model contractStep userAddress =
                             [ el [ centerX, nunito, Font.bold ] (text "Interact with Contract")
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 3 of 4")
                             ]
-                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Why would you like to do this?")
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Add description")
                         , el [ centerX, width shrink ] <| multiLineInput SetDescription
-                        , row [ spacing 50 ]
-                            [ buttonHelperStep (Contract FunctionChoice) "Back"
-                            , buttonHelperStep (Contract ContractConfirm) "Next"
+                        , row [ spacing 70, paddingTop 5 ]
+                            [ buttonHelperStep (Contract FunctionChoice) backHelper [ BG.color nearBlack, Font.color darkGrey ]
+                            , buttonHelperStep (Contract ContractConfirm) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
@@ -259,11 +259,11 @@ viewContractForm model contractStep userAddress =
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 4 of 4")
                             ]
                         , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Confirm Proposal")
-                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "to: " ++ addressStr)
-                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "send: " ++ valStr ++ " Eth")
-                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "message: " ++ model.desc)
-                        , row [ spacing 50 ]
-                            [ buttonHelperStep (Contract ContractDescription) "Back"
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "contract: " ++ addressStr)
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "function: " ++ valStr ++ " Eth")
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "message: " ++ model.desc)
+                        , row [ spacing 70, paddingTop 39 ]
+                            [ buttonHelperStep (Contract ContractDescription) backHelper [ BG.color nearBlack, Font.color darkGrey ]
                             , case ( userAddress, model.toAddress, model.valAmount ) of
                                 ( Just userAddress_, Just toAddress_, Just valAmount_ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
@@ -273,7 +273,7 @@ viewContractForm model contractStep userAddress =
 
                                 ( _, _, _ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
-                                        { onPress = Nothing, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Form Error") }
+                                        { onPress = Nothing, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Error") }
                             ]
                         ]
                     ]
@@ -293,6 +293,19 @@ inputHelper toMsg label =
             ]
 
 
+backHelper =
+    row [ width (px 120), centerX, paddingXY 20 20 ] [ viewIonIcon "arrow-dropleft-circle" 20 [], el [ centerX ] (text "Back") ]
+
+
+forwardHelper =
+    row [ width (px 120), centerX, paddingXY 20 20 ] [ el [ centerX ] (text "Next"), viewIonIcon "arrow-dropright-circle" 20 [ centerX ] ]
+
+
+stringHelper : String -> Element Msg
+stringHelper btnText =
+    row [ width (px 250), centerX, paddingXY 20 20 ] [ el [ centerX ] (text btnText) ]
+
+
 multiLineInput : (String -> Msg) -> Element Msg
 multiLineInput toMsg =
     html <|
@@ -300,20 +313,12 @@ multiLineInput toMsg =
             []
 
 
-buttonHelperStep : Step -> String -> Element Msg
-buttonHelperStep step btnText =
-    Input.button [ centerX, centerY, height (px 60), BG.color grey ]
-        { onPress = Just <| ChangeStep step, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text btnText) }
-
-
-buttonHelper : Msg -> String -> Element Msg
-buttonHelper msg btnText =
-    Input.button [ centerX, centerY, height (px 60), BG.color grey ]
-        { onPress = Just msg, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text btnText) }
-
-
-
--- for dai etc buttons, pass in noop
+buttonHelperStep : Step -> Element Msg -> List (Attribute Msg) -> Element Msg
+buttonHelperStep step btnEl attrs =
+    Input.button ([ centerX, centerY, height (px 60), BG.color grey ] ++ attrs)
+        { onPress = Just <| ChangeStep step
+        , label = btnEl
+        }
 
 
 type Msg

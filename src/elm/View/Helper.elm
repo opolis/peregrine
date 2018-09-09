@@ -66,7 +66,11 @@ grey =
 
 
 darkGrey =
-    Color.rgb 151 151 151
+    Color.rgb 151 151 151 
+
+
+nearBlack =
+    Color.rgb 74 74 74
 
 
 horizontalRule =

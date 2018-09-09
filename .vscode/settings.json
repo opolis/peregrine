@@ -1,0 +1,4 @@
+{
+    "editor.formatOnSave": true,
+    "elm.makeCommand": "elm-make"
+}

@@ -11,6 +11,7 @@ nunito =
         , Font.sansSerif
         ]
 
+
 roboto =
     Font.family
         [ Font.typeface "Roboto"
@@ -29,13 +30,15 @@ bigLogo attrs =
 blue =
     Color.rgb 44 197 195
 
-paddingTop n = 
-    paddingEach 
-    { top = n
-    , right = 0
-    , bottom = 0
-    , left = 0
-    }
+
+paddingTop n =
+    paddingEach
+        { top = n
+        , right = 0
+        , bottom = 0
+        , left = 0
+        }
+
 
 grey =
     Color.rgb 249 249 249

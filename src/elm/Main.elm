@@ -96,6 +96,24 @@ update msg model =
             in
                 ( { model | txSentry = subModel }, subCmd )
 
+        WizardMsg (Wizard.Propose userAddress toAddress value desc) ->
+            case model.dsGroupAddress of
+                Just groupAddress ->
+                    let
+                        hex =
+                            EthUtils.unsafeToHex "0x00"
+
+                        ( newTxSentry, cmd ) =
+                            (DSGroup.propose groupAddress toAddress hex value)
+                                |> Eth.toSend
+                                |> (\s -> { s | to = Just userAddress })
+                                |> TxSentry.sendWithReceipt ProposalTx ProposalTxReceipt model.txSentry
+                    in
+                        model ! []
+
+                _ ->
+                    model ! []
+
         WizardMsg subMsg ->
             case model.wizard of
                 Just wizard ->
@@ -183,46 +201,16 @@ update msg model =
                 Just _ ->
                     { model | wizard = Nothing } ! []
 
-        MakeProposal target callData value ->
-            case model.dsGroupAddress of
-                Nothing ->
-                    let
-                        _ =
-                            Debug.log "no dsgroup address to make proposal"
-                    in
-                        model ! []
-
-                Just groupAddress ->
-                    let
-                        target_ =
-                            EthUtils.toAddress target
-
-                        callData_ =
-                            EthUtils.unsafeToHex callData
-
-                        value_ =
-                            BigInt.fromString value
-                    in
-                        case ( target_, value_ ) of
-                            ( Ok targetAddr, Just val ) ->
-                                model
-                                    ! [ Task.attempt ProposalResponse
-                                            (DSGroup.propose groupAddress targetAddr callData_ val
-                                                |> Eth.call ethNode.http
-                                            )
-                                      ]
-
-                            ( _, _ ) ->
-                                let
-                                    _ =
-                                        Debug.log ("Form error for proposal data (targetAddres, calldata, val)" ++ target ++ callData ++ value)
-                                in
-                                    model ! []
-
-        ProposalResponse (Ok propId) ->
+        ProposalTx (Ok propId) ->
             model ! []
 
-        ProposalResponse (Err err) ->
+        ProposalTx (Err err) ->
+            { model | errors = toString err :: model.errors } ! []
+
+        ProposalTxReceipt (Ok txReceipt) ->
+            { model | wizard = Nothing } ! []
+
+        ProposalTxReceipt (Err err) ->
             { model | errors = toString err :: model.errors } ! []
 
         EthPrice (Ok price) ->

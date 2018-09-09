@@ -51,15 +51,15 @@ type ContractStep
     | ContractConfirm
 
 
-view : Model -> Element Msg
-view model =
+view : Model -> Maybe Address -> Element Msg
+view model userAddress =
     column [ BG.image "static/img/background.svg", height fill ]
         [ case model.step of
             Choose ->
                 viewChoose
 
             Eth ethStep ->
-                viewEth model ethStep
+                viewEth model ethStep userAddress
 
             Contract step ->
                 none
@@ -79,8 +79,8 @@ viewChoose =
         ]
 
 
-viewEth : Model -> EthStep -> Element Msg
-viewEth model ethStep =
+viewEth : Model -> EthStep -> Maybe Address -> Element Msg
+viewEth model ethStep userAddress =
     let
         addressStr =
             Maybe.map EthUtils.addressToString model.toAddress
@@ -160,7 +160,16 @@ viewEth model ethStep =
                         , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "message: " ++ model.desc)
                         , row [ spacing 50 ]
                             [ buttonHelper (Eth EthDescription) "Back"
-                            , buttonHelper (Eth EthConfirm) "Propose"
+                            , case ( userAddress, model.toAddress, model.valAmount ) of
+                                ( Just userAddress_, Just toAddress_, Just valAmount_ ) ->
+                                    Input.button [ centerX, centerY, height (px 60), BG.color grey ]
+                                        { onPress = Just <| Propose userAddress_ toAddress_ valAmount_ model.desc
+                                        , label = el [ nunito, Font.color blue, paddingXY 40 10 ] (text "Propose")
+                                        }
+
+                                ( _, _, _ ) ->
+                                    Input.button [ centerX, centerY, height (px 60), BG.color grey ]
+                                        { onPress = Just NoOp, label = el [ nunito, Font.color blue, paddingXY 40 10 ] (text "Form Error") }
                             ]
                         ]
                     ]
@@ -206,6 +215,7 @@ type Msg
     | SetAmount String
     | SetDescription String
     | ChangeStep Step
+    | Propose Address Address BigInt String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -226,8 +236,6 @@ update msg model =
         ChangeStep step ->
             { model | step = step } ! []
 
-
-
--- smallRoboto : List (Attribute Msg)
--- smallRoboto =
---     [ roboto, Font.color Color.grey, Font.size 14, Font.light ]
+        Propose userAddress toAddress txValue desc ->
+            -- Caught in Parent module
+            model ! []

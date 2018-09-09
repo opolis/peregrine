@@ -21,7 +21,7 @@ view model =
         Just subModel ->
             column []
                 [ newProposalBar "^"
-                , map WizardMsg (Wizard.view subModel)
+                , map WizardMsg (Wizard.view subModel model.account)
                 ]
 
 

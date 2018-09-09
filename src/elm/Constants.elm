@@ -3,6 +3,7 @@ module Constants exposing (..)
 import Eth.Types exposing (..)
 import Eth.Utils as EthUtils
 import Types exposing (EthNode)
+import BigInt
 
 
 contractKey : String

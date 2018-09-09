@@ -6,6 +6,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Eth.Utils exposing (addressToString)
 import Html.Attributes as Html
+import Html
 
 
 nunito =
@@ -20,6 +21,10 @@ roboto =
         [ Font.typeface "Roboto"
         , Font.sansSerif
         ]
+
+
+coinCap attrs =
+    image attrs { src = "static/img/coincap.png", description = "Coin Cap logo" }
 
 
 smallLogo attrs =
@@ -40,6 +45,15 @@ paddingTop n =
         , right = 0
         , bottom = 0
         , left = 0
+        }
+
+
+paddingLeft n =
+    paddingEach
+        { top = 0
+        , right = 0
+        , bottom = 0
+        , left = n
         }
 
 
@@ -69,3 +83,13 @@ noTextSelect =
 shortAddress addr =
     addressToString addr
         |> (\s -> String.left 5 s ++ "..." ++ String.right 5 s)
+
+
+viewIonIcon : String -> Float -> List (Attribute msg) -> Element msg
+viewIonIcon iconName size attrs =
+    html <|
+        Html.node "ion-icon"
+            [ Html.attribute "name" iconName
+            , Html.style [ ( "height", toString size ++ "px" ), ( "width", toString size ++ "px" ) ]
+            ]
+            [ Html.div [ Html.attribute "hidden" "true" ] [ Html.text "Opolis ftw" ] ]

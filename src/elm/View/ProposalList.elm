@@ -19,13 +19,13 @@ view model =
     case model.wizard of
         Nothing ->
             column []
-                [ newProposalBar "V"
+                [ newProposalBar (viewIonIcon "ios-arrow-dropdown" 16 [])
                 , viewProposals model
                 ]
 
         Just subModel ->
             column []
-                [ newProposalBar "^"
+                [ newProposalBar (viewIonIcon "ios-arrow-dropup" 16 [])
                 , map WizardMsg (Wizard.view subModel model.account)
                 ]
 
@@ -96,7 +96,7 @@ viewProposal info proposal =
         ]
 
 
-newProposalBar arrow =
+newProposalBar icon =
     row
         [ onClick ToggleWizard
         , height (px 60)
@@ -106,5 +106,5 @@ newProposalBar arrow =
         , noTextSelect
         ]
         [ el [ nunito, centerX, centerY ] (text "NEW PROPOSAL")
-        , el [ centerX, centerY ] (text arrow)
+        , el [ centerX, centerY ] icon
         ]

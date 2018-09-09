@@ -48,6 +48,7 @@ init =
     , errors = []
     , dsGroupAddress = Nothing
     , dsGroupInfo = Nothing
+    , dsGroupBalance = Nothing
     , wizard = Nothing
     , proposals = []
     , actions = []
@@ -104,9 +105,9 @@ update msg model =
                             (DSGroup.propose groupAddress toAddress hexData value)
                                 |> Eth.toSend
                                 |> (\s -> { s | to = Just userAddress })
-                                |> TxSentry.sendWithReceipt ProposalTx ProposalTxReceipt model.txSentry
+                                |> TxSentry.sendWithReceipt ProposalTx (ProposalTxReceipt groupAddress) model.txSentry
                     in
-                        model ! []
+                        { model | txSentry = newTxSentry } ! [ cmd ]
 
                 _ ->
                     model ! []
@@ -171,6 +172,7 @@ update msg model =
                 Ok contractAddress ->
                     { model | dsGroupAddress = Just contractAddress }
                         ! [ Task.attempt SetDSGroupInfo (DSGroup.getInfo contractAddress |> Eth.call ethNode.http)
+                          , Task.attempt SetDSGroupBalance (Eth.getBalance ethNode.http contractAddress)
                           , PortsDriver.localStorageSetItem portsConfig contractKey (EthUtils.addressToString contractAddress)
                           , PortsDriver.localStorageGetItem portsConfig <| EthUtils.addressToString contractAddress
                           ]
@@ -182,6 +184,12 @@ update msg model =
             { model | dsGroupInfo = Just dsGroupInfo } ! []
 
         SetDSGroupInfo (Err err) ->
+            { model | errors = toString err :: model.errors } ! []
+
+        SetDSGroupBalance (Ok dsGroupBalance) ->
+            { model | dsGroupBalance = Just dsGroupBalance } ! []
+
+        SetDSGroupBalance (Err err) ->
             { model | errors = toString err :: model.errors } ! []
 
         GetProposals (Ok actions) ->
@@ -204,16 +212,17 @@ update msg model =
         ProposalTx (Err err) ->
             { model | errors = toString err :: model.errors } ! []
 
-        ProposalTxReceipt (Ok txReceipt) ->
-            { model | wizard = Nothing } ! []
+        ProposalTxReceipt contractAddress (Ok txReceipt) ->
+            { model | wizard = Nothing }
+                ! [ Task.attempt SetDSGroupBalance (Eth.getBalance ethNode.http contractAddress) ]
 
-        ProposalTxReceipt (Err err) ->
+        ProposalTxReceipt _ (Err err) ->
             { model | errors = toString err :: model.errors } ! []
 
         EthPrice (Ok price) ->
             { model | ethUSD = Just price }
                 ! [ Task.attempt EthPrice
-                        (Process.sleep (10 * Time.second)
+                        (Process.sleep (100 * Time.second)
                             |> Task.andThen ((\_ -> getPrice "ETH"))
                         )
                   ]

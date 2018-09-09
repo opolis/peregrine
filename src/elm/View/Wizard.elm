@@ -12,6 +12,7 @@ import Element.Font as Font
 import Eth.Utils as EthUtils
 import Eth.Types exposing (..)
 import BigInt exposing (BigInt)
+import Abi.Encode as AbiEncode exposing (Encoding(..), abiEncode)
 
 
 type alias Model =
@@ -121,8 +122,9 @@ viewEthForm model ethStep userAddress =
                             ]
                         , inputHelper SetAmount "Amount:"
                         , row [ Font.color Color.white, nunito ]
-                            [ el [ centerX ] (text "Powered By Coincap")
-                            , el [ centerX ] (text <| "$" ++ "0.00")
+                            [ el [ centerX ] (text "Powered By ")
+                            , coinCap [ height (px 38), width (px 83) ]
+                            , el [ centerX, paddingLeft 5 ] (text <| "$" ++ "0.00")
                             ]
                         , row [ spacing 50 ]
                             [ buttonHelperStep (Eth EthChooseAddress) "Back"
@@ -259,7 +261,7 @@ viewContractForm model contractStep userAddress =
                             , case ( userAddress, model.toAddress, model.valAmount ) of
                                 ( Just userAddress_, Just toAddress_, Just valAmount_ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
-                                        { onPress = Just <| Propose userAddress_ toAddress_ valAmount_ (EthUtils.unsafeToHex "0x0") model.desc
+                                        { onPress = Just <| Propose userAddress_ daiTokenContract (BigInt.fromInt 0) (ercTransfer toAddress_ valAmount_) model.desc
                                         , label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Propose")
                                         }
 
@@ -304,6 +306,10 @@ buttonHelper msg btnText =
         { onPress = Just msg, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text btnText) }
 
 
+
+-- for dai etc buttons, pass in noop
+
+
 type Msg
     = NoOp
     | SetToAddress String
@@ -334,3 +340,13 @@ update msg model =
         Propose userAddress toAddress txValue hexData desc ->
             -- Caught in Parent module
             model ! []
+
+
+daiTokenContract : Address
+daiTokenContract =
+    EthUtils.unsafeToAddress "0xc384099c131cfbe5d5ffee25d9eb51f9f6a77626"
+
+
+ercTransfer : Address -> BigInt.BigInt -> Hex
+ercTransfer dst wad =
+    AbiEncode.functionCall "transfer(address,uint256)" [ AbiEncode.address dst, AbiEncode.uint wad ]

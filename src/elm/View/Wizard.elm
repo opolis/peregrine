@@ -12,6 +12,7 @@ import Element.Font as Font
 import Eth.Utils as EthUtils
 import Eth.Types exposing (..)
 import BigInt exposing (BigInt)
+import Abi.Encode as AbiEncode exposing (Encoding(..), abiEncode)
 
 
 type alias Model =
@@ -260,7 +261,7 @@ viewContractForm model contractStep userAddress =
                             , case ( userAddress, model.toAddress, model.valAmount ) of
                                 ( Just userAddress_, Just toAddress_, Just valAmount_ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
-                                        { onPress = Just <| Propose userAddress_ toAddress_ valAmount_ (EthUtils.unsafeToHex "0x0") model.desc
+                                        { onPress = Just <| Propose userAddress_ daiTokenContract (BigInt.fromInt 0) (ercTransfer toAddress_ valAmount_) model.desc
                                         , label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Propose")
                                         }
 
@@ -339,3 +340,13 @@ update msg model =
         Propose userAddress toAddress txValue hexData desc ->
             -- Caught in Parent module
             model ! []
+
+
+daiTokenContract : Address
+daiTokenContract =
+    EthUtils.unsafeToAddress "0xc384099c131cfbe5d5ffee25d9eb51f9f6a77626"
+
+
+ercTransfer : Address -> BigInt.BigInt -> Hex
+ercTransfer dst wad =
+    AbiEncode.functionCall "transfer(address,uint256)" [ AbiEncode.address dst, AbiEncode.uint wad ]

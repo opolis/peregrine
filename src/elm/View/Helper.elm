@@ -45,6 +45,15 @@ paddingTop n =
         }
 
 
+paddingLeft n =
+    paddingEach
+        { top = 0
+        , right = 0
+        , bottom = 0
+        , left = n
+        }
+
+
 grey =
     Color.rgb 249 249 249
 

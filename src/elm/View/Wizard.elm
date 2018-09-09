@@ -121,9 +121,9 @@ viewEthForm model ethStep userAddress =
                             ]
                         , inputHelper SetAmount "Amount:"
                         , row [ Font.color Color.white, nunito ]
-                            [ el [ centerX ] (text "Powered By Coincap")
-                            , coinCap [ height (px 36), width (px 33) ]
-                            , el [ centerX ] (text <| "$" ++ "0.00")
+                            [ el [ centerX ] (text "Powered By ")
+                            , coinCap [ height (px 57), width (px 126) ]
+                            , el [ centerX, paddingLeft 5 ] (text <| "$" ++ "0.00")
                             ]
                         , row [ spacing 50 ]
                             [ buttonHelperStep (Eth EthChooseAddress) "Back"
@@ -303,6 +303,10 @@ buttonHelper : Msg -> String -> Element Msg
 buttonHelper msg btnText =
     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
         { onPress = Just msg, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text btnText) }
+
+
+
+-- for dai etc buttons, pass in noop
 
 
 type Msg

@@ -37,11 +37,11 @@ type Msg
       -- UI Msgs
     | SetDSGroupAddress String
     | ToggleWizard
-    | MakeProposal String String String
       -- Chain Msgs
     | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
     | GetProposals (Result Http.Error (List DSGroup.Action))
-    | ProposalResponse (Result Http.Error BigInt)
+    | ProposalTx (Result String Tx)
+    | ProposalTxReceipt (Result String TxReceipt)
       -- Local Storage
     | GetStorageItem String (Maybe String)
       -- CoinCap

@@ -4,6 +4,7 @@ import Color
 import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
+import Html.Attributes as Html
 
 
 nunito =
@@ -32,6 +33,15 @@ blue =
     Color.rgb 44 197 195
 
 
+paddingTop n =
+    paddingEach
+        { top = n
+        , right = 0
+        , bottom = 0
+        , left = 0
+        }
+
+
 grey =
     Color.rgb 249 249 249
 
@@ -49,3 +59,7 @@ horizontalRule =
         , Border.color darkGrey
         ]
         none
+
+
+noTextSelect =
+    htmlAttribute <| Html.style [ ( "user-select", "none" ) ]

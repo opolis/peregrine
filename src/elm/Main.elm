@@ -289,6 +289,9 @@ update msg model =
             in
                 model ! []
 
+        InitLedger ->
+            model ! [ Ports.initLedger <| Encode.string "initLedger plz" ]
+
         NoOp ->
             model ! []
 

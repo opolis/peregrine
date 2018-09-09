@@ -16,3 +16,6 @@ port txOut : Value -> Cmd msg
 
 
 port txIn : (Value -> msg) -> Sub msg
+
+
+port initLedger : Value -> Cmd msg

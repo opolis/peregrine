@@ -19,13 +19,14 @@ function txSentry(fromElm, toElm, web3) {
 }
 
 
-function walletSentry(toElm, web3) {
+function walletSentry(app, toElm, web3) {
     checkToElmPort(toElm);
     checkWeb3(web3);
 
     var model = { account: null, networkId: 4 };
 
-    setInterval(function () {
+    app.ports.initLedger.subscribe(function(msg) {
+
         web3.eth.getAccounts(function (e, accounts) {
             if (accounts !== undefined && accounts[0] !== undefined && model.account !== accounts[0]) {
                 model.account = accounts[0];
@@ -37,7 +38,8 @@ function walletSentry(toElm, web3) {
                 toElm.send(model);
             }
         });
-    }, 6000);
+
+    });
 }
 
 

@@ -63,6 +63,7 @@ type Msg
     | EthPrice (Result Http.Error Float)
       -- Misc Msgs
     | Fail String
+    | InitLedger
     | NoOp
 
 

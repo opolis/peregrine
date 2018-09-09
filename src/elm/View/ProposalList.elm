@@ -93,27 +93,30 @@ viewProposal info model proposal =
                 [ el [ nunito, Font.bold, Font.size 14 ] <| text "Address"
                 , el [ roboto, Font.size 14 ] <| text <| shortAddress proposal.action.target
                 ]
-            , column [ alignRight, spacing 5 ]
-                [ el [ alignRight, nunito, Font.bold, Font.size 14 ] <| text "Amount"
-                , el [ alignRight, roboto, Font.size 14 ] <| text <| Unit.fromWei Unit.Ether proposal.action.value
-                ]
+            , if proposal.action.calldata /= "0x" then
+                none
+              else
+                column [ alignRight, spacing 5 ]
+                    [ el [ alignRight, nunito, Font.bold, Font.size 14 ] <| text "Amount"
+                    , el [ alignRight, roboto, Font.size 14 ] <| text <| Unit.fromWei Unit.Ether proposal.action.value
+                    ]
             ]
         , el [ nunito, Font.bold, Font.size 14 ] <| text "Description"
         , paragraph [ width fill, roboto, Font.size 14, moveUp 10 ]
             [ text proposal.description ]
-        , proposalButton (Dict.get proposal.id model.pendingTxs) proposal.id model
+        , proposalButton (Dict.get proposal.id model.pendingTxs) proposal.id model ((BigInt.toString proposal.action.confirmations) == (BigInt.toString info.quorum_))
         ]
 
 
-proposalButton : Maybe TxState -> Int -> Model -> Element Msg
-proposalButton proposalState proposalId model =
+proposalButton : Maybe TxState -> Int -> Model -> Bool -> Element Msg
+proposalButton proposalState proposalId model isApproved =
     case proposalState of
         Just Signing ->
             Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
                 { onPress = Nothing, label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Please Sign...") }
 
         Just Pending ->
-            Input.button [ centerX, centerY, height (px 40), width (px 200), BG.color blue, rounded 5, shadow, moveDown 20 ]
+            Input.button [ centerX, centerY, height (px 40), width (px 130), BG.color blue, rounded 5, shadow, moveDown 20 ]
                 { onPress = Nothing
                 , label =
                     column [ moveUp 80, paddingXY 30 10 ]
@@ -123,16 +126,30 @@ proposalButton proposalState proposalId model =
                 }
 
         _ ->
-            Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
-                { onPress =
-                    case model.account of
-                        Just _ ->
-                            Just (ConfirmProposal proposalId)
+            case isApproved of
+                False ->
+                    Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
+                        { onPress =
+                            case model.account of
+                                Just _ ->
+                                    Just (ConfirmProposal proposalId)
 
-                        Nothing ->
-                            Nothing
-                , label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Approve")
-                }
+                                Nothing ->
+                                    Nothing
+                        , label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Approve")
+                        }
+
+                True ->
+                    Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
+                        { onPress =
+                            case model.account of
+                                Just _ ->
+                                    Nothing
+
+                                Nothing ->
+                                    Nothing
+                        , label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Approved!")
+                        }
 
 
 newProposalBar icon =

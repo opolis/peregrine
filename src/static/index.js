@@ -12,7 +12,7 @@ window.addEventListener('load', function () {
         var app = Elm.Main.fullscreen();
 
         elm_ethereum_ports.txSentry(app.ports.txOut, app.ports.txIn, web3);
-        elm_ethereum_ports.walletSentry(app.ports.walletSentry, web3);
+        elm_ethereum_ports.walletSentry(app, app.ports.walletSentry, web3);
 
         elm_ports_driver.install(app.ports.output, app.ports.input,
             [ elm_ports_driver.local_storage, elm_ports_driver.local_storage_listener ]

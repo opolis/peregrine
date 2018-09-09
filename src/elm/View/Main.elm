@@ -39,7 +39,7 @@ navBar model =
         , height (px 60)
         , BG.color Color.black
         ]
-        [ smallLogo [ height (px 36), width (px 33), moveDown 2, moveRight 20 ]
+        [ el [ onClick InitLedger, pointer, width (px 100) ] (smallLogo [ height (px 36), width (px 33), moveDown 2, moveRight 20 ])
         , addressInput
         ]
 

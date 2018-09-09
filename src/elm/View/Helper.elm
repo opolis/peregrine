@@ -19,6 +19,10 @@ roboto =
         ]
 
 
+coinCap attrs =
+    image attrs { src = "static/img/coincap.png", description = "Coin Cap logo" }
+
+
 smallLogo attrs =
     image attrs { src = "static/img/small-logo.png", description = "Small Peregrin Logo" }
 

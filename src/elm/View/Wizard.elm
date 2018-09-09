@@ -122,6 +122,7 @@ viewEth model ethStep =
                         , inputHelper SetAmount "Amount:"
                         , row [ Font.color Color.white, nunito ]
                             [ el [ centerX ] (text "Powered By Coincap")
+                            , coinCap [ height (px 36), width (px 33) ]
                             , el [ centerX ] (text <| "$" ++ "0.00")
                             ]
                         , row [ spacing 50 ]

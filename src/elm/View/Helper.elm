@@ -3,6 +3,7 @@ module View.Helper exposing (..)
 import Element.Font as Font
 import Element exposing (..)
 import Color
+import Html.Attributes as Html
 
 
 nunito =
@@ -42,3 +43,7 @@ paddingTop n =
 
 grey =
     Color.rgb 249 249 249
+
+
+noTextSelect =
+    htmlAttribute <| Html.style [ ( "user-select", "none" ) ]

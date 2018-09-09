@@ -48,7 +48,7 @@ init =
     , errors = []
     , dsGroupAddress = Nothing
     , dsGroupInfo = Nothing
-    , wizard = Just Wizard.init
+    , wizard = Nothing
     , proposals = []
     , actions = []
     , screen = ProposalList
@@ -96,15 +96,12 @@ update msg model =
             in
                 ( { model | txSentry = subModel }, subCmd )
 
-        WizardMsg (Wizard.Propose userAddress toAddress value desc) ->
+        WizardMsg (Wizard.Propose userAddress toAddress value hexData desc) ->
             case model.dsGroupAddress of
                 Just groupAddress ->
                     let
-                        hex =
-                            EthUtils.unsafeToHex "0x00"
-
                         ( newTxSentry, cmd ) =
-                            (DSGroup.propose groupAddress toAddress hex value)
+                            (DSGroup.propose groupAddress toAddress hexData value)
                                 |> Eth.toSend
                                 |> (\s -> { s | to = Just userAddress })
                                 |> TxSentry.sendWithReceipt ProposalTx ProposalTxReceipt model.txSentry

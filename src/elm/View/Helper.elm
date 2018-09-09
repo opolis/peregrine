@@ -1,8 +1,9 @@
 module View.Helper exposing (..)
 
-import Element.Font as Font
-import Element exposing (..)
 import Color
+import Element exposing (..)
+import Element.Border as Border
+import Element.Font as Font
 
 
 nunito =
@@ -33,3 +34,18 @@ blue =
 
 grey =
     Color.rgb 249 249 249
+
+
+darkGrey =
+    Color.rgb 151 151 151
+
+
+horizontalRule =
+    el
+        [ height <| px 1
+        , width fill
+        , Border.width 1
+        , Border.solid
+        , Border.color darkGrey
+        ]
+        none

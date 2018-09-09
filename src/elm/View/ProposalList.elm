@@ -1,5 +1,7 @@
 module View.ProposalList exposing (..)
 
+import BigInt
+import Color
 import Element exposing (..)
 import Element.Events exposing (..)
 import Types exposing (..)
@@ -16,6 +18,7 @@ view model =
         Nothing ->
             column []
                 [ newProposalBar "V"
+                , viewProposals model
                 ]
 
         Just subModel ->
@@ -23,6 +26,44 @@ view model =
                 [ newProposalBar "^"
                 , map WizardMsg (Wizard.view subModel)
                 ]
+
+
+viewProposals : Model -> Element Msg
+viewProposals model =
+    column [ width fill, height fill, BG.image "static/img/background.svg" ]
+        [ column [ width fill, height shrink, padding 20, spacing 20 ]
+            [ row [ alignTop, spaceEvenly, width fill ]
+                [ text "Proposals", text "Wallet" ]
+            , case model.dsGroupInfo of
+                Nothing ->
+                    -- TODO: hackathon lol
+                    none
+
+                Just info ->
+                    row [ alignTop, spacing 22 ] <|
+                        List.map (viewProposal info) model.proposals
+            ]
+        ]
+
+
+viewProposal : GetInfo -> Proposal -> Element Msg
+viewProposal info proposal =
+    column
+        [ width <| px 290
+        , height <| px 409
+        , paddingXY 18 15
+        , spacing 13
+        , BG.color Color.white
+        ]
+        [ row [ width fill ]
+            [ text <| toString proposal.id
+            , column [ width fill ]
+                [ el [ alignRight ] <| text "3/3"
+                , el [ alignRight ] <| text "Approvals"
+                ]
+            ]
+        , horizontalRule
+        ]
 
 
 newProposalBar arrow =

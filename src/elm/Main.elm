@@ -53,7 +53,7 @@ init =
     , wizard = Nothing
     , proposals = []
     , actions = []
-    , screen = ProposalList
+    , screen = Splash
     , ethUSD = Nothing
     , walletBalance = Nothing
     , descriptions = Dict.empty
@@ -92,6 +92,9 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        PassSplash ->
+            { model | screen = ProposalList } ! []
+
         TxSentryMsg subMsg ->
             let
                 ( subModel, subCmd ) =
@@ -109,7 +112,7 @@ update msg model =
                                 |> (\s -> { s | from = Just userAddress })
                                 |> TxSentry.sendWithReceipt ProposalTx (ProposalTxReceipt groupAddress desc) model.txSentry
                     in
-                        { model | txSentry = newTxSentry } ! [ cmd ]
+                        { model | txSentry = newTxSentry, wizard = Maybe.map (\m -> { m | isPending = True }) model.wizard } ! [ cmd ]
 
                 _ ->
                     model ! []
@@ -168,6 +171,9 @@ update msg model =
                                             { model | errors = err :: model.errors } ! []
                         else
                             model ! []
+
+        RefreshStorage ->
+            model ! [ PortsDriver.localStorageGetItem portsConfig contractKey ]
 
         SetDSGroupAddress strAddress ->
             case EthUtils.toAddress strAddress of
@@ -242,31 +248,25 @@ update msg model =
             { model | errors = toString err :: model.errors } ! []
 
         ProposalTxReceipt contractAddress description (Ok txReceipt) ->
+            { model | wizard = Nothing }
+                ! [ Task.attempt (UpdateDict description contractAddress) (Eth.call ethNode.http <| DSGroup.actionCount contractAddress) ]
+
+        UpdateDict description contractAddress (Ok propId) ->
             let
-                proposed =
-                    case txReceipt.logs of
-                        [ log ] ->
-                            case (decodeString DSGroup.proposedDecoder log.data) of
-                                Ok event ->
-                                    event
-
-                                Err err ->
-                                    Debug.crash <| "unable to decode proposed event: " ++ err
-
-                        _ ->
-                            Debug.crash "expected log item not found in tx receipt"
-
                 newDescriptions =
                     Dict.toList model.descriptions
-                        |> (::) ( BigInt.toString proposed.id, description )
+                        |> (::) ( BigInt.toString (BigInt.sub propId (BigInt.fromInt 1)), description )
                         |> List.map (\( id, desc ) -> ( id, Encode.string desc ))
                         |> Encode.object
                         |> Encode.encode 0
             in
-                { model | wizard = Nothing }
-                    ! [ Task.attempt SetDSGroupBalance (Eth.getBalance ethNode.http contractAddress)
-                      , PortsDriver.localStorageSetItem portsConfig (EthUtils.addressToString contractAddress) newDescriptions
+                model
+                    ! [ PortsDriver.localStorageSetItem portsConfig (EthUtils.addressToString contractAddress) newDescriptions
+                      , Task.perform (\_ -> RefreshStorage) (Process.sleep 100 |> Task.andThen Task.succeed)
                       ]
+
+        UpdateDict _ _ (Err err) ->
+            { model | errors = toString err :: model.errors } ! []
 
         ProposalTxReceipt _ _ (Err err) ->
             { model | errors = toString err :: model.errors } ! []

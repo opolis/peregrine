@@ -20,6 +20,7 @@ type alias Model =
     , toAddress : Maybe Address
     , valAmount : Maybe BigInt
     , desc : String
+    , isPending : Bool
     }
 
 
@@ -29,6 +30,7 @@ init =
     , toAddress = Nothing
     , valAmount = Nothing
     , desc = ""
+    , isPending = False
     }
 
 
@@ -52,8 +54,8 @@ type ContractStep
     | ContractConfirm
 
 
-view : Attribute Msg -> Model -> Maybe Address -> Element Msg
-view heightAttr model userAddress =
+view : Attribute Msg -> Model -> Maybe Address -> Maybe Float -> Element Msg
+view heightAttr model userAddress ethToUsd =
     column [ BG.image "static/img/background.svg", heightAttr ]
         [ column [ BG.color (Color.rgba 175 175 175 0.2), heightAttr, transitionAttr ]
             [ case model.step of
@@ -61,7 +63,7 @@ view heightAttr model userAddress =
                     viewChoose
 
                 Eth ethStep ->
-                    viewEthForm model ethStep userAddress
+                    viewEthForm model ethStep userAddress ethToUsd
 
                 Contract contractStep ->
                     viewContractForm model contractStep userAddress
@@ -86,8 +88,8 @@ viewChoose =
         ]
 
 
-viewEthForm : Model -> EthStep -> Maybe Address -> Element Msg
-viewEthForm model ethStep userAddress =
+viewEthForm : Model -> EthStep -> Maybe Address -> Maybe Float -> Element Msg
+viewEthForm model ethStep userAddress ethToUsd =
     let
         addressStr =
             Maybe.map EthUtils.addressToString model.toAddress
@@ -130,7 +132,7 @@ viewEthForm model ethStep userAddress =
                         , row [ Font.color Color.white, nunito ]
                             [ el [ centerX ] (text "Powered By ")
                             , coinCap [ height (px 38), width (px 83) ]
-                            , el [ centerX, paddingLeft 5 ] (text <| "$" ++ "0.00")
+                            , el [ centerX, paddingLeft 5 ] (text <| "$" ++ coinCapPriceHelper ethToUsd model.valAmount)
                             ]
                         , row [ spacing 50 ]
                             [ buttonHelperStep (Eth EthChooseAddress) backHelper [ BG.color nearBlack, Font.color darkGrey ]
@@ -168,14 +170,20 @@ viewEthForm model ethStep userAddress =
                         , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "message: " ++ model.desc)
                         , row [ spacing 50 ]
                             [ buttonHelperStep (Eth EthDescription) backHelper [ BG.color nearBlack, Font.color darkGrey ]
-                            , case ( userAddress, model.toAddress, model.valAmount ) of
-                                ( Just userAddress_, Just toAddress_, Just valAmount_ ) ->
+                            , case ( userAddress, model.toAddress, model.valAmount, model.isPending ) of
+                                ( _, _, _, True ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
-                                        { onPress = Just <| Propose userAddress_ toAddress_ valAmount_ (EthUtils.unsafeToHex "0x0") model.desc
+                                        { onPress = Nothing
+                                        , label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Pending...")
+                                        }
+
+                                ( Just userAddress_, Just toAddress_, Just valAmount_, _ ) ->
+                                    Input.button [ centerX, centerY, height (px 60), BG.color grey ]
+                                        { onPress = Just <| Propose userAddress_ toAddress_ (toEth valAmount_) (EthUtils.unsafeToHex "0x0") model.desc
                                         , label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Propose")
                                         }
 
-                                ( _, _, _ ) ->
+                                ( _, _, _, _ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
                                         { onPress = Nothing, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Form Error") }
                             ]
@@ -204,12 +212,11 @@ viewContractForm model contractStep userAddress =
                             ]
                         , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Interact with Which Contract?")
                         , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
-                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "DAI") }
+                            { onPress = Just <| ChangeStep (Contract FunctionChoice), label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "DAI") }
                         , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
                             { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Add contract") }
                         , row [ spacing 70, paddingTop 40 ]
                             [ buttonHelperStep (Choose) backHelper [ BG.color nearBlack, Font.color darkGrey ]
-                            , buttonHelperStep (Contract FunctionChoice) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
@@ -223,14 +230,11 @@ viewContractForm model contractStep userAddress =
                             ]
                         , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "What function would you like to call?")
                         , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
-                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Shake It") }
+                            { onPress = Just <| ChangeStep (Contract ContractDescription), label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Transfer") }
                         , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
-                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Twist It") }
-                        , Input.button [ centerX, centerY, BG.color Color.white, height (px 40), width (px 260), paddingEach { top = 3, right = 3, bottom = 3, left = 3 } ]
-                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Bop It") }
+                            { onPress = Nothing, label = el [ nunito, Font.size 14, Font.color blue, noTextSelect ] (text "Transfer From") }
                         , row [ spacing 70, paddingTop 10 ]
                             [ buttonHelperStep (Contract ContractChoice) backHelper [ BG.color nearBlack, Font.color darkGrey ]
-                            , buttonHelperStep (Contract ContractDescription) forwardHelper [ Font.color blue ]
                             ]
                         ]
                     ]
@@ -242,6 +246,8 @@ viewContractForm model contractStep userAddress =
                             [ el [ centerX, nunito, Font.bold ] (text "Interact with Contract")
                             , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 3 of 4")
                             ]
+                        , inputHelper SetToAddress "Address:"
+                        , inputHelper SetAmount "Amount:"
                         , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Add description")
                         , el [ centerX, width shrink ] <| multiLineInput SetDescription
                         , row [ spacing 70, paddingTop 5 ]
@@ -264,19 +270,37 @@ viewContractForm model contractStep userAddress =
                         , el [ Font.color Color.white, nunito, centerX, roboto, Font.size 14, Font.light ] (text <| "message: " ++ model.desc)
                         , row [ spacing 70, paddingTop 39 ]
                             [ buttonHelperStep (Contract ContractDescription) backHelper [ BG.color nearBlack, Font.color darkGrey ]
-                            , case ( userAddress, model.toAddress, model.valAmount ) of
-                                ( Just userAddress_, Just toAddress_, Just valAmount_ ) ->
+                            , case ( userAddress, model.toAddress, model.valAmount, model.isPending ) of
+                                ( _, _, _, True ) ->
+                                    Input.button [ centerX, centerY, height (px 60), BG.color grey ]
+                                        { onPress = Nothing
+                                        , label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Pending...")
+                                        }
+
+                                ( Just userAddress_, Just toAddress_, Just valAmount_, _ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
                                         { onPress = Just <| Propose userAddress_ daiTokenContract (BigInt.fromInt 0) (ercTransfer toAddress_ valAmount_) model.desc
                                         , label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Propose")
                                         }
 
-                                ( _, _, _ ) ->
+                                ( _, _, _, _ ) ->
                                     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
                                         { onPress = Nothing, label = el [ nunito, Font.color blue, paddingXY 40 10, noTextSelect ] (text "Error") }
                             ]
                         ]
                     ]
+
+
+coinCapPriceHelper : Maybe Float -> Maybe BigInt -> String
+coinCapPriceHelper ethToUsd coinPrice =
+    Maybe.map (round >> BigInt.fromInt) ethToUsd
+        |> Maybe.andThen (\ethToUsd_ -> Maybe.map (BigInt.mul ethToUsd_ >> BigInt.toString) coinPrice)
+        |> Maybe.withDefault "0.00"
+
+
+toEth val =
+    BigInt.pow (BigInt.fromInt 10) (BigInt.fromInt 18)
+        |> BigInt.mul val
 
 
 inputHelper : (String -> Msg) -> String -> Element Msg
@@ -350,7 +374,7 @@ update msg model =
 
         Propose userAddress toAddress txValue hexData desc ->
             -- Caught in Parent module
-            model ! []
+            { model | isPending = True } ! []
 
 
 daiTokenContract : Address

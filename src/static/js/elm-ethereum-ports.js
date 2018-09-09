@@ -37,7 +37,7 @@ function walletSentry(toElm, web3) {
                 toElm.send(model);
             }
         });
-    }, 2500);
+    }, 6000);
 }
 
 

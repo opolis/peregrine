@@ -3,6 +3,7 @@ module View.Main exposing (..)
 import Element exposing (..)
 import Element.Input as Input
 import Element.Background as BG
+import Element.Events exposing (..)
 import Types exposing (..)
 import Color
 import View.Helper exposing (..)
@@ -13,7 +14,10 @@ import Element.Font as Font
 view : Model -> Element Msg
 view model =
     column [ width fill ]
-        [ ledgerStatusBar model
+        [ if model.screen == Splash then
+            none
+          else
+            ledgerStatusBar model
         , navBar model
         , case model.screen of
             Splash ->
@@ -70,7 +74,7 @@ addressInput =
 
 splashScreen : Element Msg
 splashScreen =
-    row [ width fill, height fill, BG.image "static/img/background.svg" ]
+    row [ width fill, height fill, BG.image "static/img/background.svg", onClick PassSplash, pointer ]
         [ row [ spacing 100 ]
             [ column [ centerX, width shrink ]
                 [ el [ centerY, nunito, Font.color Color.white, Font.size 46 ] (text "Peregrine")

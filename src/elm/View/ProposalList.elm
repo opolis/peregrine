@@ -22,14 +22,14 @@ view model =
         Nothing ->
             column []
                 [ newProposalBar (viewIonIcon "ios-arrow-dropdown" 16 [])
-                , map WizardMsg (Wizard.view (height (px 0)) Wizard.init model.account)
+                , map WizardMsg (Wizard.view (height (px 0)) Wizard.init model.account model.ethUSD)
                 , viewProposals model
                 ]
 
         Just subModel ->
             column []
                 [ newProposalBar (viewIonIcon "ios-arrow-dropup" 16 [])
-                , map WizardMsg (Wizard.view (height (px 866)) subModel model.account)
+                , map WizardMsg (Wizard.view (height (px 780)) subModel model.account model.ethUSD)
                 ]
 
 
@@ -77,7 +77,11 @@ viewProposal info model proposal =
         , row [ width fill ]
             [ column [ spacing 5 ]
                 [ el [ nunito, Font.bold, Font.size 14 ] <| text "Type"
-                , el [ roboto, Font.size 14 ] <| text "ETH Transfer"
+                , el [ roboto, Font.size 14 ] <|
+                    if proposal.action.calldata == "0x" then
+                        text "ETH Transfer"
+                    else
+                        text "DAI Transfer"
                 ]
             , column [ alignRight, spacing 5 ]
                 [ el [ alignRight, nunito, Font.bold, Font.size 14 ] <| text "Expiration"
@@ -96,14 +100,13 @@ viewProposal info model proposal =
             ]
         , el [ nunito, Font.bold, Font.size 14 ] <| text "Description"
         , paragraph [ width fill, roboto, Font.size 14, moveUp 10 ]
-            [ text proposal.description
-            ]
-        , proposalButton (Dict.get proposal.id model.pendingTxs) proposal.id
+            [ text proposal.description ]
+        , proposalButton (Dict.get proposal.id model.pendingTxs) proposal.id model
         ]
 
 
-proposalButton : Maybe TxState -> Int -> Element Msg
-proposalButton proposalState proposalId =
+proposalButton : Maybe TxState -> Int -> Model -> Element Msg
+proposalButton proposalState proposalId model =
     case proposalState of
         Just Signing ->
             Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
@@ -111,14 +114,24 @@ proposalButton proposalState proposalId =
 
         Just Pending ->
             Input.button [ centerX, centerY, height (px 40), width (px 200), BG.color blue, rounded 5, shadow, moveDown 20 ]
-                { onPress = Nothing, label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Pending") }
+                { onPress = Nothing
+                , label =
+                    column [ moveUp 80, paddingXY 30 10 ]
+                        [ pendingGif [ height (px 80), moveUp 10 ]
+                        , el [ nunito, Font.color Color.white, Font.size 18 ] (text "Pending...")
+                        ]
+                }
 
         _ ->
             Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
-                { onPress = Just (ConfirmProposal proposalId)
-                , label = column [ moveUp 80, paddingXY 30 10 ] [ pendingGif [ height (px 80), moveUp 10 ], el [ nunito, Font.color Color.white, Font.size 18 ] (text "Pending...") ]
+                { onPress =
+                    case model.account of
+                        Just _ ->
+                            Just (ConfirmProposal proposalId)
 
-                -- , label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Approve")
+                        Nothing ->
+                            Nothing
+                , label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Approve")
                 }
 
 

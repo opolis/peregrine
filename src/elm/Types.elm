@@ -54,8 +54,11 @@ type Msg
     | ProposalTxReceipt Address String (Result String TxReceipt)
     | ConfirmTx Int (Result String Tx)
     | ConfirmTxReceipt Int (Result String TxReceipt)
+    | PassSplash
       -- Local Storage
     | GetStorageItem String (Maybe String)
+    | RefreshStorage
+    | UpdateDict String Address (Result Http.Error BigInt)
       -- CoinCap
     | EthPrice (Result Http.Error Float)
       -- Misc Msgs

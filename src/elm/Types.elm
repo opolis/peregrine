@@ -28,7 +28,14 @@ type alias Model =
     , ethUSD : Maybe Float
     , walletBalance : Maybe Float
     , errors : List String
+    , pendingTxs : Dict Int TxState
     }
+
+
+type TxState
+    = Default
+    | Signing
+    | Pending
 
 
 type Msg
@@ -39,11 +46,14 @@ type Msg
     | SetDSGroupAddress String
     | ToggleWizard
       -- Chain Msgs
+    | ConfirmProposal Int
     | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
     | SetDSGroupBalance (Result Http.Error BigInt)
     | GetProposals (Result Http.Error (List DSGroup.Action))
     | ProposalTx (Result String Tx)
     | ProposalTxReceipt Address (Result String TxReceipt)
+    | ConfirmTx Int (Result String Tx)
+    | ConfirmTxReceipt Int (Result String TxReceipt)
       -- Local Storage
     | GetStorageItem String (Maybe String)
       -- CoinCap

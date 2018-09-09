@@ -35,6 +35,10 @@ bigLogo attrs =
     image attrs { src = "static/img/large-logo.png", description = "Big Peregrin Logo" }
 
 
+pendingGif attrs =
+    image attrs { src = "static/img/floaty-box.gif", description = "Loading..." }
+
+
 blue =
     Color.rgb 44 197 195
 
@@ -93,3 +97,11 @@ viewIonIcon iconName size attrs =
             , Html.style [ ( "height", toString size ++ "px" ), ( "width", toString size ++ "px" ) ]
             ]
             [ Html.div [ Html.attribute "hidden" "true" ] [ Html.text "Opolis ftw" ] ]
+
+
+shadow =
+    Border.glow darkGrey 1
+
+
+rounded =
+    Border.rounded

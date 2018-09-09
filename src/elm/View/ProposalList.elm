@@ -2,8 +2,10 @@ module View.ProposalList exposing (..)
 
 import BigInt
 import Color
+import Dict
 import Element exposing (..)
 import Element.Events exposing (..)
+import Element.Input as Input
 import Eth.Units as Unit
 import Types exposing (..)
 import View.Wizard as Wizard
@@ -20,7 +22,7 @@ view model =
         Nothing ->
             column []
                 [ newProposalBar (viewIonIcon "ios-arrow-dropdown" 16 [])
-                , map WizardMsg (Wizard.view (height (px 1)) Wizard.init model.account)
+                , map WizardMsg (Wizard.view (height (px 0)) Wizard.init model.account)
                 , viewProposals model
                 ]
 
@@ -44,19 +46,21 @@ viewProposals model =
 
                 Just info ->
                     row [ alignTop, spacing 22 ] <|
-                        List.map (viewProposal info) model.proposals
+                        List.map (viewProposal info model) model.proposals
             ]
         ]
 
 
-viewProposal : GetInfo -> Proposal -> Element Msg
-viewProposal info proposal =
+viewProposal : GetInfo -> Model -> Proposal -> Element Msg
+viewProposal info model proposal =
     column
         [ width <| px 290
         , height <| px 409
         , paddingXY 18 15
-        , spacing 13
+        , spacing 20
         , BG.color Color.white
+        , rounded 4
+        , shadow
         ]
         [ row [ width fill ]
             [ el [ nunito ] <| text <| toString proposal.id
@@ -77,7 +81,7 @@ viewProposal info proposal =
                 ]
             , column [ alignRight, spacing 5 ]
                 [ el [ alignRight, nunito, Font.bold, Font.size 14 ] <| text "Expiration"
-                , el [ alignRight, roboto, Font.size 14 ] <| text <| BigInt.toString proposal.action.deadline
+                , el [ alignRight, roboto, Font.size 14 ] <| text "9/24/18" -- TODO Need to use actual date.
                 ]
             ]
         , row [ width fill ]
@@ -91,10 +95,31 @@ viewProposal info proposal =
                 ]
             ]
         , el [ nunito, Font.bold, Font.size 14 ] <| text "Description"
-        , paragraph [ width fill, roboto, Font.size 14 ]
+        , paragraph [ width fill, roboto, Font.size 14, moveUp 10 ]
             [ text proposal.description
             ]
+        , proposalButton (Dict.get proposal.id model.pendingTxs) proposal.id
         ]
+
+
+proposalButton : Maybe TxState -> Int -> Element Msg
+proposalButton proposalState proposalId =
+    case proposalState of
+        Just Signing ->
+            Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
+                { onPress = Nothing, label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Please Sign...") }
+
+        Just Pending ->
+            Input.button [ centerX, centerY, height (px 40), width (px 200), BG.color blue, rounded 5, shadow, moveDown 20 ]
+                { onPress = Nothing, label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Pending") }
+
+        _ ->
+            Input.button [ centerX, centerY, height (px 40), BG.color blue, rounded 5, shadow, moveDown 20 ]
+                { onPress = Just (ConfirmProposal proposalId)
+                , label = column [ moveUp 80, paddingXY 30 10 ] [ pendingGif [ height (px 80), moveUp 10 ], el [ nunito, Font.color Color.white, Font.size 18 ] (text "Pending...") ]
+
+                -- , label = el [ nunito, Font.color Color.white, Font.size 18, paddingXY 30 10, noTextSelect ] (text "Approve")
+                }
 
 
 newProposalBar icon =

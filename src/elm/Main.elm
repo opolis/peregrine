@@ -56,6 +56,7 @@ init =
     , ethUSD = Nothing
     , walletBalance = Nothing
     , descriptions = Dict.empty
+    , pendingTxs = Dict.empty
     }
         ! [ PortsDriver.localStorageGetItem portsConfig contractKey
           , Task.attempt EthPrice <| getPrice "ETH"
@@ -104,7 +105,7 @@ update msg model =
                         ( newTxSentry, cmd ) =
                             (DSGroup.propose groupAddress toAddress hexData value)
                                 |> Eth.toSend
-                                |> (\s -> { s | to = Just userAddress })
+                                |> (\s -> { s | from = Just userAddress })
                                 |> TxSentry.sendWithReceipt ProposalTx (ProposalTxReceipt groupAddress) model.txSentry
                     in
                         { model | txSentry = newTxSentry } ! [ cmd ]
@@ -205,6 +206,33 @@ update msg model =
 
                 Just _ ->
                     { model | wizard = Nothing } ! []
+
+        ConfirmProposal propId ->
+            case ( model.account, model.dsGroupAddress ) of
+                ( Just ledger, Just dsGroupAddress ) ->
+                    let
+                        ( newTxSentry, cmd ) =
+                            (DSGroup.confirm dsGroupAddress (BigInt.fromInt propId))
+                                |> Eth.toSend
+                                |> (\s -> { s | from = Just ledger })
+                                |> TxSentry.sendWithReceipt (ConfirmTx propId) (ConfirmTxReceipt propId) model.txSentry
+                    in
+                        { model | txSentry = newTxSentry, pendingTxs = Dict.insert propId Signing model.pendingTxs } ! [ cmd ]
+
+                _ ->
+                    model ! []
+
+        ConfirmTx propId (Ok _) ->
+            { model | pendingTxs = Dict.insert propId Pending model.pendingTxs } ! []
+
+        ConfirmTx _ (Err err) ->
+            { model | errors = toString err :: model.errors } ! []
+
+        ConfirmTxReceipt propId (Ok txReceipt) ->
+            { model | pendingTxs = Dict.insert propId Default model.pendingTxs } ! []
+
+        ConfirmTxReceipt _ (Err err) ->
+            { model | errors = toString err :: model.errors } ! []
 
         ProposalTx (Ok propId) ->
             model ! []

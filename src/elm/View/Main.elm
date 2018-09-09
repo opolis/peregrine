@@ -13,7 +13,8 @@ import Element.Font as Font
 view : Model -> Element Msg
 view model =
     column [ width fill ]
-        [ navBar model
+        [ ledgerStatusBar model
+        , navBar model
         , case model.screen of
             Splash ->
                 splashScreen
@@ -37,6 +38,17 @@ navBar model =
         [ smallLogo [ height (px 36), width (px 33), moveDown 2, moveRight 20 ]
         , addressInput
         ]
+
+
+ledgerStatusBar : Model -> Element Msg
+ledgerStatusBar model =
+    case model.account of
+        Nothing ->
+            row [ height (px 20), BG.color Color.red ]
+                [ el [ centerX, nunito, Font.color Color.white, Font.size 12 ] (text "Missing Ledger Wallet") ]
+
+        Just _ ->
+            none
 
 
 addressInput : Element Msg
@@ -77,5 +89,6 @@ whiteNunito : List (Attribute Msg)
 whiteNunito =
     [ nunito, Font.color Color.white, Font.size 16 ]
 
-greyRoboto = 
-    [ roboto, Font.color Color.grey, Font.size 16, Font.light]
+
+greyRoboto =
+    [ roboto, Font.color Color.grey, Font.size 16, Font.light ]

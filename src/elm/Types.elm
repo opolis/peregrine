@@ -21,13 +21,13 @@ type alias Model =
     , screen : Screen
     , dsGroupAddress : Maybe Address
     , dsGroupInfo : Maybe DSGroup.GetInfo
+    , dsGroupBalance : Maybe BigInt
     , actions : List DSGroup.Action
     , descriptions : Descriptions
     , proposals : List Proposal
     , ethUSD : Maybe Float
     , walletBalance : Maybe Float
     , errors : List String
-    , somethingIsPending : Bool
     }
 
 
@@ -40,9 +40,10 @@ type Msg
     | ToggleWizard
       -- Chain Msgs
     | SetDSGroupInfo (Result Http.Error DSGroup.GetInfo)
+    | SetDSGroupBalance (Result Http.Error BigInt)
     | GetProposals (Result Http.Error (List DSGroup.Action))
     | ProposalTx (Result String Tx)
-    | ProposalTxReceipt (Result String TxReceipt)
+    | ProposalTxReceipt Address (Result String TxReceipt)
       -- Local Storage
     | GetStorageItem String (Maybe String)
       -- CoinCap

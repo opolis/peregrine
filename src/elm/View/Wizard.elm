@@ -18,14 +18,16 @@ type alias Model =
     { step : Step
     , toAddress : Maybe Address
     , valAmount : Maybe BigInt
+    , desc : String
     }
 
 
 init : Model
 init =
-    { step = Choose
+    { step = (Eth EthDescription)
     , toAddress = Nothing
     , valAmount = Nothing
+    , desc = ""
     }
 
 
@@ -83,6 +85,10 @@ viewEth model ethStep =
         addressStr =
             Maybe.map EthUtils.addressToString model.toAddress
                 |> Maybe.withDefault "Error parsing address"
+
+        valStr =
+            Maybe.map BigInt.toString model.valAmount
+                |> Maybe.withDefault "Error parsing value"
     in
         case ethStep of
             EthChooseAddress ->
@@ -105,6 +111,10 @@ viewEth model ethStep =
                         , el [ Font.color Color.white, nunito ] (text "How much ether would you like to send?")
                         , row [ Font.color Color.white, nunito ] [ el [] (text "to: "), el [] (text addressStr) ]
                         , inputHelper SetAmount "Multi-sig wallet Address:"
+                        , row [ Font.color Color.white, nunito ]
+                            [ el [] (text "Powered By Coincap")
+                            , el [] (text <| "$" ++ "0.00")
+                            ]
                         , row [ spacing 50 ]
                             [ buttonHelper (Eth EthChooseAddress) "Back"
                             , buttonHelper (Eth EthDescription) "Next"
@@ -116,9 +126,8 @@ viewEth model ethStep =
                 column []
                     [ column [ centerY, height shrink, spacing 60 ]
                         [ column [ Font.color Color.white, nunito ] [ el [] (text "Send Eth"), el [] (text "Step 3 of 4") ]
-                        , el [ Font.color Color.white, nunito ] (text "Where would you like to send Eth?")
-
-                        -- , addressInput
+                        , el [ Font.color Color.white, nunito ] (text "Why would you like to do this?")
+                        , multiLineInput SetDescription "Message"
                         , row [ spacing 50 ]
                             [ buttonHelper (Eth EthChooseAmount) "Back"
                             , buttonHelper (Eth EthConfirm) "Next"
@@ -130,12 +139,13 @@ viewEth model ethStep =
                 column []
                     [ column [ centerY, height shrink, spacing 60 ]
                         [ column [ Font.color Color.white, nunito ] [ el [] (text "Send Eth"), el [] (text "Step 4 of 4") ]
-                        , el [ Font.color Color.white, nunito ] (text "Where would you like to send Eth?")
-
-                        -- , addressInput
+                        , el [ Font.color Color.white, nunito ] (text "Confirm Proposal")
+                        , el [ Font.color Color.white, nunito ] (text <| "to: " ++ addressStr)
+                        , el [ Font.color Color.white, nunito ] (text <| "send: " ++ valStr ++ " Eth")
+                        , el [ Font.color Color.white, nunito ] (text <| "message: " ++ model.desc)
                         , row [ spacing 50 ]
                             [ buttonHelper (Eth EthDescription) "Back"
-                            , buttonHelper (Eth EthConfirm) "Next"
+                            , buttonHelper (Eth EthConfirm) "Propose"
                             ]
                         ]
                     ]
@@ -155,6 +165,20 @@ inputHelper toMsg label =
             ]
 
 
+multiLineInput : (String -> Msg) -> String -> Element Msg
+multiLineInput toMsg label =
+    let
+        textInput =
+            html <|
+                Html.textarea [ Html.onInput toMsg, Html.style [ ( "height", "90px" ), ( "width", "280px" ) ] ]
+                    []
+    in
+        row [ spacing 30 ]
+            [ el [ Font.color Color.white, nunito, paddingXY 30 0 ] (text label)
+            , textInput
+            ]
+
+
 buttonHelper : Step -> String -> Element Msg
 buttonHelper step btnText =
     Input.button [ centerX, centerY, height (px 60), BG.color grey ]
@@ -165,6 +189,7 @@ type Msg
     = NoOp
     | SetToAddress String
     | SetAmount String
+    | SetDescription String
     | ChangeStep Step
 
 
@@ -179,6 +204,9 @@ update msg model =
 
         SetToAddress strAddress ->
             { model | toAddress = EthUtils.toAddress strAddress |> Result.toMaybe } ! []
+
+        SetDescription strDesc ->
+            { model | desc = strDesc } ! []
 
         ChangeStep step ->
             { model | step = step } ! []

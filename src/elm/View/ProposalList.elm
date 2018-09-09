@@ -21,7 +21,7 @@ view model =
         Just subModel ->
             column []
                 [ newProposalBar "^"
-                , map WizardMsg (Wizard.view subModel)
+                , map WizardMsg (Wizard.view subModel model.account)
                 ]
 
 
@@ -32,7 +32,7 @@ newProposalBar arrow =
         , BG.color grey
         , spacing 10
         , pointer
-        , htmlAttribute <| Html.style [ ( "user-select", "none" ) ]
+        , noTextSelect
         ]
         [ el [ nunito, centerX, centerY ] (text "NEW PROPOSAL")
         , el [ centerX, centerY ] (text arrow)

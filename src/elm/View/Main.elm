@@ -48,7 +48,7 @@ ledgerStatusBar : Model -> Element Msg
 ledgerStatusBar model =
     case model.account of
         Nothing ->
-            row [ height (px 20), BG.color Color.red ]
+            row [ height (px 20), BG.color <| Color.rgb 200 94 94 ]
                 [ el [ centerX, nunito, Font.color Color.white, Font.size 12 ] (text "Missing Ledger Wallet") ]
 
         Just _ ->

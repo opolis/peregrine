@@ -4,6 +4,7 @@ import Color
 import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
+import Eth.Utils exposing (addressToString)
 import Html.Attributes as Html
 import Html
 
@@ -77,6 +78,11 @@ horizontalRule =
 
 noTextSelect =
     htmlAttribute <| Html.style [ ( "user-select", "none" ) ]
+
+
+shortAddress addr =
+    addressToString addr
+        |> (\s -> String.left 5 s ++ "..." ++ String.right 5 s)
 
 
 viewIonIcon : String -> Float -> List (Attribute msg) -> Element msg

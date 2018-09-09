@@ -4,10 +4,12 @@ import BigInt
 import Color
 import Element exposing (..)
 import Element.Events exposing (..)
+import Eth.Units as Unit
 import Types exposing (..)
 import View.Wizard as Wizard
 import View.Helper exposing (..)
 import Element.Background as BG
+import Element.Font as Font
 import Html.Attributes as Html
 import Contract.DSGroup exposing (Action, GetInfo)
 
@@ -33,7 +35,7 @@ viewProposals : Model -> Element Msg
 viewProposals model =
     column [ width fill, height fill, BG.image "static/img/background.svg" ]
         [ column [ width fill, height shrink, padding 20, spacing 20 ]
-            [ row [ alignTop, spaceEvenly, width fill ]
+            [ row [ nunito, Font.size 18, Font.color Color.white, alignTop, spaceEvenly, width fill ]
                 [ text "Proposals", text "Wallet" ]
             , case model.dsGroupInfo of
                 Nothing ->
@@ -57,13 +59,41 @@ viewProposal info proposal =
         , BG.color Color.white
         ]
         [ row [ width fill ]
-            [ text <| toString proposal.id
-            , column [ width fill ]
-                [ el [ alignRight ] <| text "3/3"
-                , el [ alignRight ] <| text "Approvals"
+            [ el [ nunito ] <| text <| toString proposal.id
+            , column [ nunito ]
+                [ el [ alignRight ] <|
+                    text <|
+                        (BigInt.toString proposal.action.confirmations)
+                            ++ "/"
+                            ++ (BigInt.toString info.quorum_)
+                , el [ alignRight, Font.size 12 ] <| text "Approvals"
                 ]
             ]
         , horizontalRule
+        , row [ width fill ]
+            [ column [ spacing 5 ]
+                [ el [ nunito, Font.bold, Font.size 14 ] <| text "Type"
+                , el [ roboto, Font.size 14 ] <| text "ETH Transfer"
+                ]
+            , column [ alignRight, spacing 5 ]
+                [ el [ alignRight, nunito, Font.bold, Font.size 14 ] <| text "Expiration"
+                , el [ alignRight, roboto, Font.size 14 ] <| text <| BigInt.toString proposal.action.deadline
+                ]
+            ]
+        , row [ width fill ]
+            [ column [ spacing 5 ]
+                [ el [ nunito, Font.bold, Font.size 14 ] <| text "Address"
+                , el [ roboto, Font.size 14 ] <| text <| shortAddress proposal.action.target
+                ]
+            , column [ alignRight, spacing 5 ]
+                [ el [ alignRight, nunito, Font.bold, Font.size 14 ] <| text "Amount"
+                , el [ alignRight, roboto, Font.size 14 ] <| text <| Unit.fromWei Unit.Ether proposal.action.value
+                ]
+            ]
+        , el [ nunito, Font.bold, Font.size 14 ] <| text "Description"
+        , paragraph [ width fill, roboto, Font.size 14 ]
+            [ text proposal.description
+            ]
         ]
 
 

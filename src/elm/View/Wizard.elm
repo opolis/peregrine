@@ -122,7 +122,7 @@ viewEthForm model ethStep userAddress =
                         , inputHelper SetAmount "Amount:"
                         , row [ Font.color Color.white, nunito ]
                             [ el [ centerX ] (text "Powered By ")
-                            , coinCap [ height (px 57), width (px 126) ]
+                            , coinCap [ height (px 38), width (px 83) ]
                             , el [ centerX, paddingLeft 5 ] (text <| "$" ++ "0.00")
                             ]
                         , row [ spacing 50 ]

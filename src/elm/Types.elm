@@ -51,7 +51,7 @@ type Msg
     | SetDSGroupBalance (Result Http.Error BigInt)
     | GetProposals (Result Http.Error (List DSGroup.Action))
     | ProposalTx (Result String Tx)
-    | ProposalTxReceipt Address (Result String TxReceipt)
+    | ProposalTxReceipt Address String (Result String TxReceipt)
     | ConfirmTx Int (Result String Tx)
     | ConfirmTxReceipt Int (Result String TxReceipt)
       -- Local Storage

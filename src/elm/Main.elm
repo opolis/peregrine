@@ -22,6 +22,7 @@ import Constants exposing (contractKey, dsGroup, ethNode)
 import Result
 import Types exposing (..)
 import Json.Decode exposing (decodeString)
+import Json.Encode as Encode
 import View.Main as MainView
 import View.Wizard as Wizard
 import Time
@@ -106,7 +107,7 @@ update msg model =
                             (DSGroup.propose groupAddress toAddress hexData value)
                                 |> Eth.toSend
                                 |> (\s -> { s | from = Just userAddress })
-                                |> TxSentry.sendWithReceipt ProposalTx (ProposalTxReceipt groupAddress) model.txSentry
+                                |> TxSentry.sendWithReceipt ProposalTx (ProposalTxReceipt groupAddress desc) model.txSentry
                     in
                         { model | txSentry = newTxSentry } ! [ cmd ]
 
@@ -240,11 +241,34 @@ update msg model =
         ProposalTx (Err err) ->
             { model | errors = toString err :: model.errors } ! []
 
-        ProposalTxReceipt contractAddress (Ok txReceipt) ->
-            { model | wizard = Nothing }
-                ! [ Task.attempt SetDSGroupBalance (Eth.getBalance ethNode.http contractAddress) ]
+        ProposalTxReceipt contractAddress description (Ok txReceipt) ->
+            let
+                proposed =
+                    case txReceipt.logs of
+                        [ log ] ->
+                            case (decodeString DSGroup.proposedDecoder log.data) of
+                                Ok event ->
+                                    event
 
-        ProposalTxReceipt _ (Err err) ->
+                                Err err ->
+                                    Debug.crash <| "unable to decode proposed event: " ++ err
+
+                        _ ->
+                            Debug.crash "expected log item not found in tx receipt"
+
+                newDescriptions =
+                    Dict.toList model.descriptions
+                        |> (::) ( BigInt.toString proposed.id, description )
+                        |> List.map (\( id, desc ) -> ( id, Encode.string desc ))
+                        |> Encode.object
+                        |> Encode.encode 0
+            in
+                { model | wizard = Nothing }
+                    ! [ Task.attempt SetDSGroupBalance (Eth.getBalance ethNode.http contractAddress)
+                      , PortsDriver.localStorageSetItem portsConfig (EthUtils.addressToString contractAddress) newDescriptions
+                      ]
+
+        ProposalTxReceipt _ _ (Err err) ->
             { model | errors = toString err :: model.errors } ! []
 
         EthPrice (Ok price) ->

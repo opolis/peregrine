@@ -93,10 +93,13 @@ viewEth model ethStep =
         case ethStep of
             EthChooseAddress ->
                 column []
-                    [ column [ centerY, height shrink, spacing 60 ]
-                        [ column [ Font.color Color.white, nunito ] [ el [] (text "Send Eth"), el [] (text "Step 1 of 4") ]
-                        , el [ Font.color Color.white, nunito ] (text "Where would you like to send Eth?")
-                        , inputHelper SetToAddress "Multi-sig wallet Address:"
+                    [ column [ centerY, height shrink, spacing 40 ]
+                        [ column [ Font.color Color.white, centerX ]
+                            [ el [ centerX, nunito, Font.bold ] (text "Send Eth")
+                            , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 1 of 4")
+                            ]
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Where would you like to send Eth?")
+                        , inputHelper SetToAddress "Address:"
                         , row [ spacing 50 ]
                             [ buttonHelper (Choose) "Back"
                             , buttonHelper (Eth EthChooseAmount) "Next"
@@ -106,14 +109,20 @@ viewEth model ethStep =
 
             EthChooseAmount ->
                 column []
-                    [ column [ centerY, height shrink, spacing 60 ]
-                        [ column [ Font.color Color.white, nunito ] [ el [] (text "Send Eth"), el [] (text "Step 2 of 4") ]
-                        , el [ Font.color Color.white, nunito ] (text "How much ether would you like to send?")
-                        , row [ Font.color Color.white, nunito ] [ el [] (text "to: "), el [] (text addressStr) ]
-                        , inputHelper SetAmount "Multi-sig wallet Address:"
+                    [ column [ centerY, height shrink, spacing 40 ]
+                        [ column [ Font.color Color.white ]
+                            [ el [ centerX, nunito, Font.bold ] (text "Send Eth")
+                            , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 2 of 4")
+                            ]
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "How much ether would you like to send?")
                         , row [ Font.color Color.white, nunito ]
-                            [ el [] (text "Powered By Coincap")
-                            , el [] (text <| "$" ++ "0.00")
+                            [ el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "to: ")
+                            , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text addressStr)
+                            ]
+                        , inputHelper SetAmount "Amount:"
+                        , row [ Font.color Color.white, nunito ]
+                            [ el [ centerX ] (text "Powered By Coincap")
+                            , el [ centerX ] (text <| "$" ++ "0.00")
                             ]
                         , row [ spacing 50 ]
                             [ buttonHelper (Eth EthChooseAddress) "Back"
@@ -124,10 +133,13 @@ viewEth model ethStep =
 
             EthDescription ->
                 column []
-                    [ column [ centerY, height shrink, spacing 60 ]
-                        [ column [ Font.color Color.white, nunito ] [ el [] (text "Send Eth"), el [] (text "Step 3 of 4") ]
-                        , el [ Font.color Color.white, nunito ] (text "Why would you like to do this?")
-                        , multiLineInput SetDescription "Message"
+                    [ column [ centerY, centerX, height shrink, spacing 60 ]
+                        [ column [ Font.color Color.white ]
+                            [ el [ centerX, nunito, Font.bold ] (text "Send Eth")
+                            , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 3 of 4")
+                            ]
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Why would you like to do this?")
+                        , el [ centerX, width shrink ] <| multiLineInput SetDescription "Message"
                         , row [ spacing 50 ]
                             [ buttonHelper (Eth EthChooseAmount) "Back"
                             , buttonHelper (Eth EthConfirm) "Next"
@@ -137,12 +149,15 @@ viewEth model ethStep =
 
             EthConfirm ->
                 column []
-                    [ column [ centerY, height shrink, spacing 60 ]
-                        [ column [ Font.color Color.white, nunito ] [ el [] (text "Send Eth"), el [] (text "Step 4 of 4") ]
-                        , el [ Font.color Color.white, nunito ] (text "Confirm Proposal")
-                        , el [ Font.color Color.white, nunito ] (text <| "to: " ++ addressStr)
-                        , el [ Font.color Color.white, nunito ] (text <| "send: " ++ valStr ++ " Eth")
-                        , el [ Font.color Color.white, nunito ] (text <| "message: " ++ model.desc)
+                    [ column [ centerY, height shrink, spacing 40 ]
+                        [ column [ Font.color Color.white ]
+                            [ el [ centerX, nunito, Font.bold ] (text "Send Eth")
+                            , el [ centerX, roboto, Font.light, Font.size 16, paddingTop 5 ] (text "Step 4 of 4")
+                            ]
+                        , el [ Font.color Color.white, roboto, Font.light, Font.size 32, centerX, paddingTop 40 ] (text "Confirm Proposal")
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "to: " ++ addressStr)
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "send: " ++ valStr ++ " Eth")
+                        , el [ Font.color Color.white, nunito, centerX, roboto, Font.light ] (text <| "message: " ++ model.desc)
                         , row [ spacing 50 ]
                             [ buttonHelper (Eth EthDescription) "Back"
                             , buttonHelper (Eth EthConfirm) "Propose"
@@ -156,11 +171,11 @@ inputHelper toMsg label =
     let
         textInput =
             html <|
-                Html.input [ Html.onInput toMsg, Html.style [ ( "height", "30px" ) ] ]
+                Html.input [ Html.onInput toMsg, Html.style [ ( "height", "30px" ), ( "width", "300px" ), ( "margin", "auto" ) ] ]
                     []
     in
-        row [ spacing 30 ]
-            [ el [ Font.color Color.white, nunito, paddingXY 30 0 ] (text label)
+        row [ spacing 30, centerX, width shrink ]
+            [ el [ Font.color Color.white, nunito, paddingXY 30 0, centerX, width shrink ] (text label)
             , textInput
             ]
 
@@ -210,3 +225,9 @@ update msg model =
 
         ChangeStep step ->
             { model | step = step } ! []
+
+
+
+-- smallRoboto : List (Attribute Msg)
+-- smallRoboto =
+--     [ roboto, Font.color Color.grey, Font.size 14, Font.light ]
